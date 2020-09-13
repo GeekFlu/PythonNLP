@@ -1,0 +1,3 @@
+Appending text to the new file using A+This is an added line using a+
+ this is a real new line
+ this is a real new line
