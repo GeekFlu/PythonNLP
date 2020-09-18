@@ -32,3 +32,6 @@ if __name__ == "__main__":
     sorted_words = sort_dict_by_value(words)
     for val, key in sorted_words[:50]:
         print(key, val)
+
+    for a_char in "long string to see how it works on a for loop":
+        print(a_char)
