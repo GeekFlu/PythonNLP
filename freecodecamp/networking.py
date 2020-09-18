@@ -2,6 +2,7 @@ import socket
 import urllib.error
 import urllib.parse
 import urllib.request
+from bs4 import BeautifulSoup
 
 
 def make_urllib_request():
@@ -37,3 +38,11 @@ if __name__ == "__main__":
     dictionary_ = make_urllib_request()
     ordered_list = sort_dictionary(dictionary_)
     print(ordered_list[:5])
+
+    url = input('Enter URL- ')
+    html = urllib.request.urlopen(url).read()
+    soup = BeautifulSoup(html, 'html.parser')
+
+    tags = soup('a')
+    for tag in tags:
+        print(tag.get('href', None))
