@@ -10,7 +10,7 @@ class Operation:
     def __init__(self, str_operation):
         self.num_list = []
         self.printable_numbers = []
-        self.result = 0
+        self.result = None
         self.raw_text = str_operation
 
         if len(re.findall(self.regular_expression_invalid_operations, str_operation)):
@@ -30,6 +30,7 @@ class Operation:
         self.num_list.sort(reverse=False)
 
     def calculate(self):
+        self.result = 0
         for n in self.num_list:
             self.result += n
 
@@ -37,9 +38,9 @@ class Operation:
         max_number_len = len(str(max(self.num_list)))
         max_num_of_spaces = max_number_len + 1 + 1
         str_nums = [str(n) for n in self.num_list]
+        operand = ''
         for it, str_n in enumerate(str_nums):
             # str_n 34 and max spaces = 5  space space space 3 4
-            operand = ''
             if str_n.find('+') != -1:
                 operand = '+'
                 str_n = str_n.replace("+", "")
@@ -57,6 +58,20 @@ class Operation:
                 pre_spaces = pre_spaces + " "
             printable_number = pre_spaces + str_n
             self.printable_numbers.append(printable_number)
+
+        self.printable_numbers[-1] = operand + self.printable_numbers[-1]
+
+        line = ''
+        for step in range(len(self.printable_numbers[-1])):
+            line = line + '_'
+        self.printable_numbers.append(line)
+
+        if self.result is not None:
+            s_res = str(self.result)
+            spaces = ""
+            for i in range(max_num_of_spaces - len(s_res)):
+                spaces = spaces + " "
+            self.printable_numbers.append(spaces + str(self.result))
 
     def __str__(self):
         return f"Operation {self.raw_text} = {self.result}"
@@ -81,7 +96,8 @@ if __name__ == "__main__":
     new_s = re.sub(r"\s+", "", "   53 + 34-34    - 4545+ 3")
     invalid = re.findall(r"[/%\\*]+", "55 / 7 + 3 % 67 * 4")
     result = re.findall(s, "523 - 20 + 30 - 10")
-    list_example = ["523 - 20 + 30 - 10"]
+    list_example = ["523 - 70 + 30 - 10"]
     for operation01 in arithmetic_arranger(list_example, True):
         print(operation01)
         operation01.generate_printable()
+        print('Fib')
