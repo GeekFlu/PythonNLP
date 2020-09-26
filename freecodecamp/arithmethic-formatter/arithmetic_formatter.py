@@ -1,6 +1,23 @@
 import re
 
 
+def get_printable(operations):
+    max_lines = 0
+    for operation in operations:
+        if len(operation.num_list) > max_lines:
+            max_lines = len(operation.num_list)
+
+    for i in range(max_lines):
+        for operation in operations:
+            if len(operation.printable_numbers) <= 0:
+                operation.generate_printable()
+            template = ""
+            for printable_operation in operation.printable_numbers:
+                template = template + f"{printable_operation}\n"
+
+    print(f"{template}")
+
+
 class Operation:
     valid_operations = ["+", "-"]
     regular_expression_find_numbers = r"([-+]*\s*\d+)"
@@ -12,6 +29,7 @@ class Operation:
         self.printable_numbers = []
         self.result = None
         self.raw_text = str_operation
+        self.printable = ""
 
         if len(re.findall(self.regular_expression_invalid_operations, str_operation)):
             raise ValueError("Error: Operator must be '+' or '-'.")
@@ -27,7 +45,6 @@ class Operation:
                 raise ValueError("Numbers must only contain digits.")
 
             self.num_list.append(n)
-        self.num_list.sort(reverse=False)
 
     def calculate(self):
         self.result = 0
@@ -86,8 +103,9 @@ def arithmetic_arranger(lst, show_ans=False):
         op = Operation(operation)
         if show_ans:
             op.calculate()
+        op.generate_printable()
         lst_operations.append(op)
-
+    get_printable(lst_operations)
     return lst_operations
 
 
@@ -96,8 +114,7 @@ if __name__ == "__main__":
     new_s = re.sub(r"\s+", "", "   53 + 34-34    - 4545+ 3")
     invalid = re.findall(r"[/%\\*]+", "55 / 7 + 3 % 67 * 4")
     result = re.findall(s, "523 - 20 + 30 - 10")
-    list_example = ["523 - 70 + 30 - 10"]
+    list_example = ["523 - 70 + 30 - 10", "12 + 33 + 12", "1 - 1"]
     for operation01 in arithmetic_arranger(list_example, True):
         print(operation01)
-        operation01.generate_printable()
         print('Fib')
