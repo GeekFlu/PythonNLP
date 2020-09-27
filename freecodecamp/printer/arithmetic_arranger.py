@@ -1,21 +1,61 @@
 import re
 
 
-def get_printable(operations):
+def arithmetic_arranger(lst, show_ans=False):
+    if len(lst) > 5:
+        return "Error: Too many problems."
+
+    lst_operations = list()
+    for operation in lst:
+        try:
+            op = Operation(operation)
+
+            if show_ans:
+                op.calculate()
+
+            op.generate_printable()
+            lst_operations.append(op)
+        except ValueError as e:
+            return e.args[0]
+
+    printable = get_printable(lst_operations, show_ans)
+    return printable
+
+
+def get_printable(operations, show_ans=False):
     max_lines = 0
     for operation in operations:
         if len(operation.num_list) > max_lines:
             max_lines = len(operation.num_list)
 
+    template = ""
     for i in range(max_lines):
         for operation in operations:
-            if len(operation.printable_numbers) <= 0:
-                operation.generate_printable()
-            template = ""
-            for printable_operation in operation.printable_numbers:
-                template = template + f"{printable_operation}\n"
+            if i < len(operation.num_list):
+                template = template + operation.printable_numbers[i] + "    "
+        template = template + "\n"
+        template = template.rstrip("    \n")
+        template = template + "\n"
 
-    print(f"{template}")
+    template = template.rstrip("    \n")
+    template = template + "\n"
+
+    for operation in operations:
+        if show_ans:
+            template = template + operation.printable_numbers[-2] + "    "
+        else:
+            template = template + operation.printable_numbers[-1] + "    "
+    template = template.rstrip(" ")
+    template = template + "\n"
+    # Show Result
+    for operation in operations:
+        if show_ans:
+            template = template + operation.printable_numbers[-1] + "    "
+
+    template = template.rstrip("\n")
+    template = template.rstrip("    ")
+
+    return template
 
 
 class Operation:
@@ -35,15 +75,16 @@ class Operation:
             raise ValueError("Error: Operator must be '+' or '-'.")
 
         strip_part = re.sub(self.regular_expression_remove_spaces, "", str_operation)
+        are_letters = re.findall(r"[^0-9\\+-]+", strip_part)
+
+        if len(are_letters) > 0:
+            raise ValueError("Error: Numbers must only contain digits.")
+
         extracted_n = re.findall(self.regular_expression_find_numbers, strip_part)
         for number in extracted_n:
-            try:
-                n = int(number)
-                if n < -9999 or n > 9999:
-                    raise ValueError("Error: Numbers cannot be more than four")
-            except ValueError:
-                raise ValueError("Numbers must only contain digits.")
-
+            n = int(number)
+            if n < -9999 or n > 9999:
+                raise ValueError("Error: Numbers cannot be more than four digits.")
             self.num_list.append(n)
 
     def calculate(self):
@@ -53,9 +94,9 @@ class Operation:
 
     def generate_printable(self):
         max_number_len = len(str(max(self.num_list)))
-        max_num_of_spaces = max_number_len + 1 + 1
+        max_num_of_spaces = max_number_len + 1
         str_nums = [str(n) for n in self.num_list]
-        operand = ''
+        operand = None
         for it, str_n in enumerate(str_nums):
             # str_n 34 and max spaces = 5  space space space 3 4
             if str_n.find('+') != -1:
@@ -71,16 +112,19 @@ class Operation:
             else:
                 n_range = max_num_of_spaces - len(str_n)
 
-            for i in range(n_range):
+            for i in range(n_range + 1):
                 pre_spaces = pre_spaces + " "
             printable_number = pre_spaces + str_n
             self.printable_numbers.append(printable_number)
+
+        if operand is None:
+            operand = "+"
 
         self.printable_numbers[-1] = operand + self.printable_numbers[-1]
 
         line = ''
         for step in range(len(self.printable_numbers[-1])):
-            line = line + '_'
+            line = line + '-'
         self.printable_numbers.append(line)
 
         if self.result is not None:
@@ -94,27 +138,11 @@ class Operation:
         return f"Operation {self.raw_text} = {self.result}"
 
 
-def arithmetic_arranger(lst, show_ans=False):
-    if len(lst) > 5:
-        raise ValueError("Error: Too many problems.")
-
-    lst_operations = list()
-    for operation in lst:
-        op = Operation(operation)
-        if show_ans:
-            op.calculate()
-        op.generate_printable()
-        lst_operations.append(op)
-    get_printable(lst_operations)
-    return lst_operations
-
-
 if __name__ == "__main__":
     s = r"([-+]*\s*\d+)"
     new_s = re.sub(r"\s+", "", "   53 + 34-34    - 4545+ 3")
     invalid = re.findall(r"[/%\\*]+", "55 / 7 + 3 % 67 * 4")
     result = re.findall(s, "523 - 20 + 30 - 10")
-    list_example = ["523 - 70 + 30 - 10", "12 + 33 + 12", "1 - 1"]
-    for operation01 in arithmetic_arranger(list_example, True):
-        print(operation01)
-        print('Fib')
+    list_example = ["523 + 70", "12 + 33", "1 - 1"]
+    operation_printable = arithmetic_arranger(list_example, True)
+    print(operation_printable)
