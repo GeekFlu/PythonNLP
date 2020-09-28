@@ -21,20 +21,25 @@ class Category:
         self.category_name = category_name
         self.ledger = list()
 
+    def deposit(self, amount, description):
+        # {"amount": amount, "description": description}
+        self.ledger.append({"amount": amount, "description": description})
+
     def __str__(self):
         len_cat_name = len(self.category_name)
         num_stars = 30 - len_cat_name
         num_stars_by_side = int(num_stars / 2)
         stars = '*' * num_stars_by_side
-        return f"{stars}{self.category_name}{stars}"
+        text = f"{stars}{self.category_name}{stars}\n"
+        for transaction in self.ledger:
+            desc = transaction['description'][0:23]
+            text = text + f"{desc:23} {transaction['amount']:>6.2f}\n"
+        return text
 
 
 if __name__ == "__main__":
     c = Category("Food")
+    c.deposit(123.34, "Food Deposit1234567890")
+    c.deposit(3.34, "More food plant based")
+    c.deposit(55.34, "Plant Based food 12345678")
     print(c)
-    t = Transaction("groceries", 255.788)
-    print(t)
-    t = Transaction("groceries 02", 255.788)
-    print(t)
-    t = Transaction("groceries 03", 255.788)
-    print(t)
