@@ -1,7 +1,8 @@
 # This entrypoint file to be used in development. Start by reading README.md
-import budget
-from budget import create_spend_chart
+from freecodecamp.budget import budget
 from unittest import main
+
+from freecodecamp.budget.budget import create_spend_chart
 
 food = budget.Category("Food")
 food.deposit(1000, "initial deposit")

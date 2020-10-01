@@ -13,7 +13,70 @@ def create_spend_chart(categories):
     :param categories:
     :return:
     """
+    # Get subtotals of each category and total.
+    total = 0
+    subtotals = dict()
+    percentages = dict()
+    for categ in categories:
+        subtotal = 0
+        for list_item in categ.ledger:
+            amount = list_item.get("amount")
+            if amount < 0:
+                subtotal -= amount
+            else:
+                continue
+        subtotals[categ] = subtotal
+        total += subtotal
 
+    # Get percentage rounded down to nearest 10 of each category.
+    for key, value in subtotals.items():
+        percent = (value / total) * 100
+        percent = percent - (percent % 10)
+        percentages[key] = percent
+
+    # Get bar chart.
+    #   - Percentages:
+    bar_chart = "Percentage spent by category" + '\n'
+    x = 100
+    perc_list = list()
+    for (key, value) in percentages.items():
+        perc_list.append((value, key))
+    perc_list = sorted(perc_list, reverse=True)
+    for number in range(11):
+        bar_row = f"{x}".rjust(3) + "| "
+        for value, key in perc_list:
+            if value >= x:
+                bar_row += "o  "
+            else:
+                bar_row += "   "
+        bar_chart += bar_row + '\n'
+        x -= 10
+
+    #   - Horizontal line:
+    dash_length = len(bar_row) - 4
+    bar_chart += '    ' + '-' * dash_length + '\n'
+
+    #   - Category names:
+    len_list = list()
+    for v, k in perc_list:
+        category_name = k.category_name
+        len_list.append(len(category_name))
+    y = 0
+    while y <= max(len_list):
+        bar_row = "     "
+        for value, key in perc_list:
+            cat_name = key.category_name
+            try:
+                bar_row += cat_name[y] + '  '
+            except:
+                bar_row += '   '
+        if y <= max(len_list) - 1:
+            bar_chart += bar_row + '\n'
+        else:
+            bar_chart += bar_row
+        y = y + 1
+
+    return bar_chart
 
 class Transaction:
 
