@@ -1,6 +1,8 @@
 import unittest
-import budget
-from budget import create_spend_chart
+import freecodecamp.budget
+#from budget import create_spend_chart
+
+from freecodecamp.budget import budget
 
 
 class UnitTests(unittest.TestCase):

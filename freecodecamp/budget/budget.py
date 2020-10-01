@@ -2,7 +2,17 @@ import math
 
 
 def create_spend_chart(categories):
-    pass
+    """
+    The chart should show the percentage spent in each category passed in to the function. The percentage spent
+    should be calculated only with withdrawals and not with deposits. Down the left side of the chart should be
+    labels 0 - 100. The "bars" in the bar chart should be made out of the "o" character. The height of each bar
+    should be rounded down to the nearest 10. The horizontal line below the bars should go two spaces past the final
+    bar. Each category name should be vertically below the bar. There should be a title at the top that says
+    "Percentage spent by category".
+
+    :param categories:
+    :return:
+    """
 
 
 class Transaction:
@@ -32,7 +42,7 @@ class Category:
         """
         self.ledger.append({"amount": amount, "description": description})
 
-    def withdraw(self, amount, description):
+    def withdraw(self, amount, description=""):
         """
         A withdraw method that is similar to the deposit method, but the amount passed in should be stored in the ledger
         as a negative number. If there are not enough funds, nothing should be added to the ledger. This method should
@@ -50,8 +60,7 @@ class Category:
     def get_total_deposit(self):
         total = 0
         for transaction in self.ledger:
-            if transaction["amount"] > 0:
-                total = total + transaction["amount"]
+            total = total + transaction["amount"]
         return total
 
     def get_balance(self):
@@ -62,7 +71,7 @@ class Category:
         """
         balance = 0
         for transaction in self.ledger:
-            balance = balance + transaction.amount
+            balance = balance + transaction['amount']
         return balance
 
     def transfer(self, amount, category):
@@ -73,9 +82,22 @@ class Category:
         Budget Category]". If there are not enough funds, nothing should be added to either ledgers. This method
         should return True if the transfer took place, and False otherwise. :return:
         """
-        are_funds = self.withdraw(amount, f"Transfer to {self.category_name}")
+        are_funds = self.withdraw(amount, f"Transfer to {category.category_name}")
         if are_funds:
-            category.deposit(amount, f"Transfer from {category.category_name}")
+            category.deposit(amount, f"Transfer from {self.category_name}")
+            return True
+        else:
+            return False
+
+    def check_funds(self, amount):
+        """
+        A check_funds method that accepts an amount as an argument. It returns False if the amount is less than the
+        balance of the budget category and returns True otherwise. This method should be used by both the withdraw
+        method and transfer method.
+        :return:
+        """
+        total = self.get_total_deposit()
+        if amount <= total:
             return True
         else:
             return False
@@ -88,7 +110,9 @@ class Category:
         text = f"{stars}{self.category_name}{stars}\n"
         for transaction in self.ledger:
             desc = transaction['description'][0:23]
-            text = text + f"{desc:23} {transaction['amount']:>6.2f}\n"
+            text = text + f"{desc:23} {transaction['amount']:>4.2f}\n"
+
+        text = text + f"Total: {self.get_total_deposit():.2f}"
         return text
 
 
@@ -99,4 +123,12 @@ if __name__ == "__main__":
     food.deposit(5000, "Deposito para comidas")
     entretenimiento.deposit(3000, "Dinerito para entretenimiento")
     business.deposit(2500.55, "Deposito para hacer negocios")
+
+    food.withdraw(55.55, "Aguas y cheves")
+    entretenimiento.withdraw(567.87, "Juego PS4 Ghost of TIKISHIMA??")
+    business.withdraw(33.45)
+
+    print(food)
+    print(entretenimiento)
+    print(business)
 
