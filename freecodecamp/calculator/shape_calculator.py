@@ -33,8 +33,8 @@ class Rectangle:
             picture += "\n"
         return picture
 
-    def get_amount_inside(self):
-        pass
+    def get_amount_inside(self, n_rec):
+        return int(self.get_area() / n_rec.get_area())
 
     def __str__(self):
         return f'Rectangle(width={self.width}, height={self.height})'
