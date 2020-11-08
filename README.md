@@ -7,3 +7,6 @@ for language english library:
  - para espaniol: python -m spacy download es_core_news_sm
  - pip install nltk 
 
+# PyGame
+
+- sudo apt install python3-pygame
