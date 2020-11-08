@@ -1,7 +1,9 @@
 import time
 import pygame
+import random
 from pygame import mixer
 from maze.Shape import Line, Cell
+from collections import deque
 
 # Constants
 RED = (255, 0, 0)
@@ -11,6 +13,10 @@ DARK_BLUE = (0, 0, 128)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 PINK = (255, 200, 200)
+
+# Direction Vectors
+DIRECTION_ROW = [-1, 1, 0, 0]
+DIRECTION_COL = [0, 0, 1, -1]
 
 
 class Maze:
@@ -27,6 +33,8 @@ class Maze:
         self.margin = margin
         self.lines = []
         self.cells = []
+        self.R = 0
+        self.C = 0
 
     def create_maze(self):
         """
@@ -40,8 +48,9 @@ class Maze:
         # Creating the lines for the grid
         start_x = self.margin
         start_y = self.margin
-        for row in range(1, num_vertical_cells + 1):
-            for col in range(1, num_horizontal_cells + 1):
+        for row in range(num_vertical_cells):
+            cell_cols = []
+            for col in range(num_horizontal_cells):
                 # Calculate deltas
                 delta_x = start_x + self.cell_size
                 delta_y = start_y + self.cell_size
@@ -52,38 +61,22 @@ class Maze:
                 east = Line(delta_x, start_y, delta_x, delta_y)
                 west = Line(start_x, start_y, start_x, delta_y)
 
-                if north.generate_key() not in self.lines:
-                    self.lines.append(north.generate_key())
-                else:
-                    north.set_is_duplicate()
-
-                if south.generate_key() not in self.lines:
-                    self.lines.append(south.generate_key())
-                else:
-                    south.set_is_duplicate()
-
-                if east.generate_key() not in self.lines:
-                    self.lines.append(east.generate_key())
-                else:
-                    east.set_is_duplicate()
-
-                if west.generate_key() not in self.lines:
-                    self.lines.append(west.generate_key())
-                else:
-                    west.set_is_duplicate()
-
-                self.cells.append(Cell(north, south, east, west))
+                cell_cols.append(Cell(row, col, north, south, east, west))
 
                 # increment x by cell size
                 start_x = start_x + self.cell_size
             # increment y by cell size
             start_y = start_y + self.cell_size
             start_x = self.margin
+            self.cells.append(cell_cols)
 
         # Call show maze
         self.running = True
 
     def show_maze(self):
+        # stack to start DFS
+        cell_stack = deque()
+
         # Initialize Init
         pygame.init()
 
@@ -94,16 +87,68 @@ class Maze:
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         self.screen.fill(BLACK)
 
-        for cell in self.cells:
-            for wall in cell.walls.values():
-                if not wall.is_duplicate:
-                    pygame.draw.line(self.screen, WHITE, wall.start, wall.end)
+        # Drawing the grid
+        for cell_row in self.cells:
+            for cell in cell_row:
+                for wall in cell.walls.values():
+                    if not wall.is_duplicate and wall.is_drawable:
+                        pygame.draw.line(self.screen, WHITE, wall.start, wall.end)
+
+        # Setting max grid Dimension
+        self.R = len(self.cells)
+        self.C = len(self.cells[0])
+
+        # Randomly we select the initial cell
+        rnd_row = random.randint(0, self.R)
+        rnd_col = random.randint(0, self.C)
+
+        initial_cell = self.cells[rnd_row][rnd_col]
+        initial_cell.set_visited()
+        cell_stack.append((initial_cell.row, initial_cell.col))
 
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
+
+            while len(cell_stack) > 0:
+                current_cell = cell_stack.pop()
+                rnd_cell = self.get_random_neighbour(self.cells[current_cell[0]][current_cell[1]])
+                if rnd_cell is not None:
+                    cell_stack.append(current_cell)
+
+
             pygame.display.update()
+
+    def explore_neighbours_bfs(self, current_cell):
+        neighbours = self.get_neighbours(current_cell.row, current_cell.col)
+        # TODO complete BFS https://youtu.be/09_LlHjoEiY?t=3239
+
+    def get_random_neighbour(self, current_cell):
+        neighbours = self.get_neighbours(current_cell.row, current_cell.col)
+        if len(neighbours) > 0:
+            return random.choice(neighbours)
+        else:
+            return None
+
+    def get_neighbours(self, row, col):
+        neighbours = []
+        for i in range(4):
+            rr = row + DIRECTION_ROW[i]
+            cc = col + DIRECTION_COL[i]
+
+            # we skip bounds
+            if rr < 0 or cc < 0:
+                continue
+            if rr >= self.R or cc >= self.C:
+                continue
+
+            # we skip visited cells
+            if self.cells[rr][cc].is_visited:
+                continue
+
+            neighbours.append(self.cells[rr][cc])
+        return neighbours
 
 
 if __name__ == "__main__":
@@ -120,7 +165,8 @@ if __name__ == "__main__":
     sd = (1, 2)
     sd1 = (1, 2)
     print(sd == sd1)
-    m = Maze(800, 600, 25)
+    m = Maze(900, 800, 80)
     m.create_maze()
+    print(
+        f"(rows, cols) in the grid ({len(m.cells)}, {len(m.cells[0])}), total cells = {len(m.cells) * len(m.cells[0])}")
     m.show_maze()
-    print(f"Number of cells in the grid {len(m.cells)}")
