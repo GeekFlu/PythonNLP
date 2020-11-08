@@ -40,8 +40,9 @@ class Maze:
         # Creating the lines for the grid
         start_x = self.margin
         start_y = self.margin
-        for row in range(1, num_vertical_cells + 1):
-            for col in range(1, num_horizontal_cells + 1):
+        for row in range(num_vertical_cells):
+            cell_cols = []
+            for col in range(num_horizontal_cells):
                 # Calculate deltas
                 delta_x = start_x + self.cell_size
                 delta_y = start_y + self.cell_size
@@ -72,13 +73,14 @@ class Maze:
                 else:
                     west.set_is_duplicate()
 
-                self.cells.append(Cell(north, south, east, west))
+                cell_cols.append(Cell(row, col, north, south, east, west))
 
                 # increment x by cell size
                 start_x = start_x + self.cell_size
             # increment y by cell size
             start_y = start_y + self.cell_size
             start_x = self.margin
+            self.cells.append(cell_cols)
 
         # Call show maze
         self.running = True
@@ -94,10 +96,11 @@ class Maze:
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         self.screen.fill(BLACK)
 
-        for cell in self.cells:
-            for wall in cell.walls.values():
-                if not wall.is_duplicate:
-                    pygame.draw.line(self.screen, WHITE, wall.start, wall.end)
+        for cell_row in self.cells:
+            for cell in cell_row:
+                for wall in cell.walls.values():
+                    if not wall.is_duplicate:
+                        pygame.draw.line(self.screen, WHITE, wall.start, wall.end)
 
         while self.running:
             for event in pygame.event.get():
@@ -120,7 +123,7 @@ if __name__ == "__main__":
     sd = (1, 2)
     sd1 = (1, 2)
     print(sd == sd1)
-    m = Maze(800, 600, 25)
+    m = Maze(900, 700, 50)
     m.create_maze()
+    print(f"(rows, cols) in the grid ({len(m.cells)}, {len(m.cells[0])}), total cells = {len(m.cells) * len(m.cells[0])}")
     m.show_maze()
-    print(f"Number of cells in the grid {len(m.cells)}")

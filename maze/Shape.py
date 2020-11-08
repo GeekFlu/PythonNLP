@@ -21,8 +21,10 @@ class Line:
 
 class Cell:
 
-    def __init__(self, _north: Line, _south: Line, _east: Line, _west: Line):
+    def __init__(self, row: int, col: int, _north: Line, _south: Line, _east: Line, _west: Line):
         self.walls = dict(north=_north, south=_south, east=_east, west=_west)
+        self.row = row
+        self.col = col
 
     def add_wall(self, line, direction):
         """
