@@ -26,6 +26,7 @@ class Line:
 class Cell:
 
     def __init__(self, row: int, col: int, _north: Line, _south: Line, _east: Line, _west: Line):
+        self.is_visited = False
         self.row = row
         self.col = col
         # To test we are going to set one wall not drawable
@@ -38,3 +39,9 @@ class Cell:
         :return:
         """
         self.walls[direction] = line
+
+    def set_visited(self):
+        self.is_visited = True
+
+    def __str__(self):
+        return f"Cell({self.row},{self.col})"
