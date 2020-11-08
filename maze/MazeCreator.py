@@ -96,10 +96,11 @@ class Maze:
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         self.screen.fill(BLACK)
 
+        # Drawing the grid
         for cell_row in self.cells:
             for cell in cell_row:
                 for wall in cell.walls.values():
-                    if not wall.is_duplicate:
+                    if not wall.is_duplicate and wall.is_drawable:
                         pygame.draw.line(self.screen, WHITE, wall.start, wall.end)
 
         while self.running:
@@ -123,7 +124,7 @@ if __name__ == "__main__":
     sd = (1, 2)
     sd1 = (1, 2)
     print(sd == sd1)
-    m = Maze(900, 700, 50)
+    m = Maze(900, 800, 80)
     m.create_maze()
     print(f"(rows, cols) in the grid ({len(m.cells)}, {len(m.cells[0])}), total cells = {len(m.cells) * len(m.cells[0])}")
     m.show_maze()
