@@ -18,7 +18,7 @@ PINK = (255, 200, 200)
 DIRECTION_ROW = [-1, 1, 0, 0]
 DIRECTION_COL = [0, 0, 1, -1]
 
-FPS = 30
+FPS = 60
 # frames per second setting
 fpsClock = pygame.time.Clock()
 
@@ -203,7 +203,7 @@ class Maze:
 
 if __name__ == "__main__":
     print(f'Welcome home Maze creator {time.time()}')
-    m = Maze(900, 800, 8)
+    m = Maze(800, 600, 35)
     m.create_maze()
     print(
         f"(rows, cols) in the grid ({len(m.cells)}, {len(m.cells[0])}), total cells = {len(m.cells) * len(m.cells[0])}")
