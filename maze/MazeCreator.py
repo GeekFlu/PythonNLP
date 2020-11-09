@@ -123,6 +123,9 @@ class Maze:
                 current_cell_col = cell_stack_col.pop()
                 rnd_cell = self.get_random_neighbour(self.cells[current_cell_row][current_cell_col])
                 if rnd_cell is not None:
+                    # Push current cell to Stack
+                    cell_stack_row.append(current_cell_row)
+                    cell_stack_col.append(current_cell_col)
                     # Get current from grid
                     current_cell = self.cells[current_cell_row][current_cell_col]
 
@@ -133,6 +136,7 @@ class Maze:
                     current_cell.set_visited()
 
                     # Push rnd cell to the stacks
+                    rnd_cell.set_visited()
                     cell_stack_row.append(rnd_cell.row)
                     cell_stack_col.append(rnd_cell.col)
 
@@ -172,7 +176,6 @@ class Maze:
             # we skip visited cells
             if self.cells[rr][cc].is_visited:
                 continue
-
             neighbours.append(self.cells[rr][cc])
         return neighbours
 
@@ -200,7 +203,7 @@ class Maze:
 
 if __name__ == "__main__":
     print(f'Welcome home Maze creator {time.time()}')
-    m = Maze(900, 800, 70)
+    m = Maze(900, 800, 8)
     m.create_maze()
     print(
         f"(rows, cols) in the grid ({len(m.cells)}, {len(m.cells[0])}), total cells = {len(m.cells) * len(m.cells[0])}")
