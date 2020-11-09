@@ -18,6 +18,10 @@ PINK = (255, 200, 200)
 DIRECTION_ROW = [-1, 1, 0, 0]
 DIRECTION_COL = [0, 0, 1, -1]
 
+FPS = 30
+# frames per second setting
+fpsClock = pygame.time.Clock()
+
 
 class Maze:
 
@@ -75,7 +79,8 @@ class Maze:
 
     def show_maze(self):
         # stack to start DFS
-        cell_stack = deque()
+        cell_stack_row = deque()
+        cell_stack_col = deque()
 
         # Initialize Init
         pygame.init()
@@ -104,21 +109,46 @@ class Maze:
 
         initial_cell = self.cells[rnd_row][rnd_col]
         initial_cell.set_visited()
-        cell_stack.append((initial_cell.row, initial_cell.col))
+        cell_stack_row.append(initial_cell.row)
+        cell_stack_col.append(initial_cell.col)
 
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
 
-            while len(cell_stack) > 0:
-                current_cell = cell_stack.pop()
-                rnd_cell = self.get_random_neighbour(self.cells[current_cell[0]][current_cell[1]])
+            # Both stacks are in sync
+            while len(cell_stack_row) > 0:
+                current_cell_row = cell_stack_row.pop()
+                current_cell_col = cell_stack_col.pop()
+                rnd_cell = self.get_random_neighbour(self.cells[current_cell_row][current_cell_col])
                 if rnd_cell is not None:
-                    cell_stack.append(current_cell)
+                    # Push current cell to Stack
+                    cell_stack_row.append(current_cell_row)
+                    cell_stack_col.append(current_cell_col)
+                    # Get current from grid
+                    current_cell = self.cells[current_cell_row][current_cell_col]
 
+                    # Remove walls between current cell and rnd_cell
+                    self.remove_walls(current_cell, rnd_cell, current_cell_row, current_cell_col)
 
-            pygame.display.update()
+                    # Mark rnd cell as visited
+                    current_cell.set_visited()
+
+                    # Push rnd cell to the stacks
+                    rnd_cell.set_visited()
+                    cell_stack_row.append(rnd_cell.row)
+                    cell_stack_col.append(rnd_cell.col)
+
+                    # repaint lines with black line
+                    for wall in current_cell.walls.values():
+                        if not wall.is_drawable:
+                            pygame.draw.line(self.screen, BLACK, wall.start, wall.end)
+                    for wall in rnd_cell.walls.values():
+                        if not wall.is_drawable:
+                            pygame.draw.line(self.screen, BLACK, wall.start, wall.end)
+                    pygame.display.update()
+                    fpsClock.tick(FPS)
 
     def explore_neighbours_bfs(self, current_cell):
         neighbours = self.get_neighbours(current_cell.row, current_cell.col)
@@ -146,26 +176,34 @@ class Maze:
             # we skip visited cells
             if self.cells[rr][cc].is_visited:
                 continue
-
             neighbours.append(self.cells[rr][cc])
         return neighbours
+
+    def remove_walls(self, current_cell, rnd_cell, current_row, current_col):
+        if current_row == rnd_cell.row:
+            relative_col_pos = current_col - rnd_cell.col
+            if relative_col_pos == 1:
+                # we remove current cell west wall and rnd east wall
+                current_cell.walls[Line.WEST].set_not_drawable()
+                rnd_cell.walls[Line.EAST].set_not_drawable()
+            elif relative_col_pos == -1:
+                # we remove current cell's east wall and rnd cell's west wall
+                current_cell.walls[Line.EAST].set_not_drawable()
+                rnd_cell.walls[Line.WEST].set_not_drawable()
+        elif current_col == rnd_cell.col:
+            relative_row_pos = current_row - rnd_cell.row
+            if relative_row_pos == 1:
+                # Remove current's North and Rnd's South
+                current_cell.walls[Line.NORTH].set_not_drawable()
+                rnd_cell.walls[Line.SOUTH].set_not_drawable()
+            elif relative_row_pos == -1:
+                current_cell.walls[Line.SOUTH].set_not_drawable()
+                rnd_cell.walls[Line.NORTH].set_not_drawable()
 
 
 if __name__ == "__main__":
     print(f'Welcome home Maze creator {time.time()}')
-    l1 = Line(1, 2, 3, 5)
-    l2 = Line(1, 2, 3, 5)
-    print(f"l1 key = {l1.generate_key()}")
-    print(f"l2 key = {l2.generate_key()}")
-    print(l1.generate_key() == l2.generate_key())
-    print(l1)
-    l = 30
-    for r in range(1, l + 1):
-        print(r)
-    sd = (1, 2)
-    sd1 = (1, 2)
-    print(sd == sd1)
-    m = Maze(900, 800, 80)
+    m = Maze(900, 800, 8)
     m.create_maze()
     print(
         f"(rows, cols) in the grid ({len(m.cells)}, {len(m.cells[0])}), total cells = {len(m.cells) * len(m.cells[0])}")

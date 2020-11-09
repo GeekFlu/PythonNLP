@@ -1,4 +1,9 @@
 class Line:
+    WEST = 'west'
+    EAST = 'east'
+    SOUTH = 'south'
+    NORTH = 'north'
+
     def __init__(self, start_x, start_y, end_x, end_y):
         self.start = (start_x, start_y)
         self.end = (end_x, end_y)
