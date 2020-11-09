@@ -197,21 +197,10 @@ class Maze:
                 current_cell.walls[Line.SOUTH].set_not_drawable()
                 rnd_cell.walls[Line.NORTH].set_not_drawable()
 
+
 if __name__ == "__main__":
     print(f'Welcome home Maze creator {time.time()}')
-    l1 = Line(1, 2, 3, 5)
-    l2 = Line(1, 2, 3, 5)
-    print(f"l1 key = {l1.generate_key()}")
-    print(f"l2 key = {l2.generate_key()}")
-    print(l1.generate_key() == l2.generate_key())
-    print(l1)
-    l = 30
-    for r in range(1, l + 1):
-        print(r)
-    sd = (1, 2)
-    sd1 = (1, 2)
-    print(sd == sd1)
-    m = Maze(900, 800, 80)
+    m = Maze(900, 800, 70)
     m.create_maze()
     print(
         f"(rows, cols) in the grid ({len(m.cells)}, {len(m.cells[0])}), total cells = {len(m.cells) * len(m.cells[0])}")
