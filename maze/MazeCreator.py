@@ -4,10 +4,11 @@ import random
 from pygame import mixer
 from maze.Shape import Line, Cell
 from collections import deque
-from maze.utils import draw_line, draw_rect
+from maze.utils import draw_line, draw_rectangle, draw_square
 
 # Constants
-RECT_SIZE = 15
+RECTANGLE_SIZE = 35
+PLAYER_SIZE = 25
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
@@ -155,11 +156,12 @@ class Maze:
                     fpsClock.tick(FPS)
 
             # Maze Generation has finished, create origin (blue) destination (Green)
-            rnd_origin_cell = self.get_random_cell()
-            rnd_destination_cell = self.get_random_cell()
             if not self.players_drawn:
-                draw_rect(pygame, self.screen, rnd_origin_cell, DARK_BLUE, RECT_SIZE, RECT_SIZE)
-                draw_rect(pygame, self.screen, rnd_destination_cell, GREEN, RECT_SIZE, RECT_SIZE)
+                draw_square(pygame, self.screen, self.get_random_cell(), DARK_BLUE, PLAYER_SIZE, RECTANGLE_SIZE)
+                draw_square(pygame, self.screen, self.get_random_cell(), GREEN, PLAYER_SIZE, RECTANGLE_SIZE)
+                draw_square(pygame, self.screen, self.get_random_cell(), GREEN, PLAYER_SIZE, RECTANGLE_SIZE)
+                draw_square(pygame, self.screen, self.get_random_cell(), GREEN, PLAYER_SIZE, RECTANGLE_SIZE)
+                draw_square(pygame, self.screen, self.get_random_cell(), GREEN, PLAYER_SIZE, RECTANGLE_SIZE)
                 pygame.display.update()
                 fpsClock.tick(FPS)
                 self.players_drawn = True
@@ -223,7 +225,7 @@ class Maze:
 
 if __name__ == "__main__":
     print(f'Welcome home Maze creator {time.time()}')
-    m = Maze(1000, 900, RECT_SIZE)
+    m = Maze(1000, 900, RECTANGLE_SIZE)
     m.create_maze()
     print(
         f"(rows, cols) in the grid ({len(m.cells)}, {len(m.cells[0])}), total cells = {len(m.cells) * len(m.cells[0])}")
