@@ -7,8 +7,8 @@ from collections import deque
 from maze.utils import draw_line, draw_rectangle, draw_square
 
 # Constants
-RECTANGLE_SIZE = 35
-PLAYER_SIZE = 10
+CELL_SIZE = 15
+PLAYER_SIZE = 9
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
@@ -157,11 +157,15 @@ class Maze:
 
             # Maze Generation has finished, create origin (blue) destination (Green)
             if not self.players_drawn:
-                draw_square(pygame, self.screen, self.get_random_cell(), DARK_BLUE, PLAYER_SIZE, RECTANGLE_SIZE)
-                draw_square(pygame, self.screen, self.get_random_cell(), GREEN, PLAYER_SIZE, RECTANGLE_SIZE)
-                draw_square(pygame, self.screen, self.get_random_cell(), GREEN, PLAYER_SIZE, RECTANGLE_SIZE)
-                draw_square(pygame, self.screen, self.get_random_cell(), GREEN, PLAYER_SIZE, RECTANGLE_SIZE)
-                draw_square(pygame, self.screen, self.get_random_cell(), GREEN, PLAYER_SIZE, RECTANGLE_SIZE)
+                draw_square(pygame, self.screen, self.get_random_cell(), DARK_BLUE, PLAYER_SIZE, CELL_SIZE)
+                draw_square(pygame, self.screen, self.get_random_cell(), RED, PLAYER_SIZE, CELL_SIZE)
+                draw_square(pygame, self.screen, self.get_random_cell(), RED, PLAYER_SIZE, CELL_SIZE)
+                draw_square(pygame, self.screen, self.get_random_cell(), RED, PLAYER_SIZE, CELL_SIZE)
+                draw_square(pygame, self.screen, self.get_random_cell(), RED, PLAYER_SIZE, CELL_SIZE)
+                draw_square(pygame, self.screen, self.get_random_cell(), GREEN, PLAYER_SIZE, CELL_SIZE)
+                draw_square(pygame, self.screen, self.get_random_cell(), GREEN, PLAYER_SIZE, CELL_SIZE)
+                draw_square(pygame, self.screen, self.get_random_cell(), GREEN, PLAYER_SIZE, CELL_SIZE)
+                draw_square(pygame, self.screen, self.get_random_cell(), GREEN, PLAYER_SIZE, CELL_SIZE)
                 pygame.display.update()
                 fpsClock.tick(FPS)
                 self.players_drawn = True
@@ -225,7 +229,7 @@ class Maze:
 
 if __name__ == "__main__":
     print(f'Welcome home Maze creator {time.time()}')
-    m = Maze(1000, 900, RECTANGLE_SIZE)
+    m = Maze(1200, 1000, CELL_SIZE)
     m.create_maze()
     print(
         f"(rows, cols) in the grid ({len(m.cells)}, {len(m.cells[0])}), total cells = {len(m.cells) * len(m.cells[0])}")
