@@ -4,8 +4,11 @@ import random
 from pygame import mixer
 from maze.Shape import Line, Cell
 from collections import deque
+from maze.utils import draw_line, draw_rectangle, draw_square
 
 # Constants
+RECTANGLE_SIZE = 35
+PLAYER_SIZE = 25
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
@@ -13,12 +16,13 @@ DARK_BLUE = (0, 0, 128)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 PINK = (255, 200, 200)
+NOOB = (255, 0, 0)
 
 # Direction Vectors
 DIRECTION_ROW = [-1, 1, 0, 0]
 DIRECTION_COL = [0, 0, 1, -1]
 
-FPS = 60
+FPS = 90
 # frames per second setting
 fpsClock = pygame.time.Clock()
 
@@ -39,6 +43,7 @@ class Maze:
         self.cells = []
         self.R = 0
         self.C = 0
+        self.players_drawn = False
 
     def create_maze(self):
         """
@@ -97,7 +102,7 @@ class Maze:
             for cell in cell_row:
                 for wall in cell.walls.values():
                     if not wall.is_duplicate and wall.is_drawable:
-                        pygame.draw.line(self.screen, WHITE, wall.start, wall.end)
+                        draw_line(pygame, self.screen, wall, WHITE)
 
         # Setting max grid Dimension
         self.R = len(self.cells)
@@ -143,12 +148,24 @@ class Maze:
                     # repaint lines with black line
                     for wall in current_cell.walls.values():
                         if not wall.is_drawable:
-                            pygame.draw.line(self.screen, BLACK, wall.start, wall.end)
+                            draw_line(pygame, self.screen, wall, BLACK)
                     for wall in rnd_cell.walls.values():
                         if not wall.is_drawable:
-                            pygame.draw.line(self.screen, BLACK, wall.start, wall.end)
+                            draw_line(pygame, self.screen, wall, BLACK)
                     pygame.display.update()
                     fpsClock.tick(FPS)
+
+            # Maze Generation has finished, create origin (blue) destination (Green)
+            if not self.players_drawn:
+                draw_square(pygame, self.screen, self.get_random_cell(), DARK_BLUE, PLAYER_SIZE, RECTANGLE_SIZE)
+                draw_square(pygame, self.screen, self.get_random_cell(), GREEN, PLAYER_SIZE, RECTANGLE_SIZE)
+                draw_square(pygame, self.screen, self.get_random_cell(), GREEN, PLAYER_SIZE, RECTANGLE_SIZE)
+                draw_square(pygame, self.screen, self.get_random_cell(), GREEN, PLAYER_SIZE, RECTANGLE_SIZE)
+                draw_square(pygame, self.screen, self.get_random_cell(), GREEN, PLAYER_SIZE, RECTANGLE_SIZE)
+                pygame.display.update()
+                fpsClock.tick(FPS)
+                self.players_drawn = True
+
 
     def explore_neighbours_bfs(self, current_cell):
         neighbours = self.get_neighbours(current_cell.row, current_cell.col)
@@ -200,10 +217,15 @@ class Maze:
                 current_cell.walls[Line.SOUTH].set_not_drawable()
                 rnd_cell.walls[Line.NORTH].set_not_drawable()
 
+    def get_random_cell(self):
+        rnd_row = random.randint(0, len(self.cells) - 1)
+        rnd_col = random.randint(0, len(self.cells[0]) - 1)
+        return self.cells[rnd_row][rnd_col]
+
 
 if __name__ == "__main__":
     print(f'Welcome home Maze creator {time.time()}')
-    m = Maze(800, 600, 35)
+    m = Maze(1000, 900, RECTANGLE_SIZE)
     m.create_maze()
     print(
         f"(rows, cols) in the grid ({len(m.cells)}, {len(m.cells[0])}), total cells = {len(m.cells) * len(m.cells[0])}")
