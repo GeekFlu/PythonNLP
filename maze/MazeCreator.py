@@ -8,7 +8,7 @@ from maze.utils import draw_line, draw_rectangle, draw_square
 
 # Constants
 RECTANGLE_SIZE = 35
-PLAYER_SIZE = 25
+PLAYER_SIZE = 10
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
