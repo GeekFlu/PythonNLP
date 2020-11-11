@@ -9,7 +9,7 @@ from maze.utils import draw_line, draw_square, remove_walls, get_direction, is_t
 
 # Constants
 NUM_PLAYERS = 1
-CELL_SIZE = 20
+CELL_SIZE = 100
 PLAYER_SIZE = math.ceil(CELL_SIZE * .53)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
@@ -208,6 +208,7 @@ class Maze:
                         nodes_in_next_layer += 1
                         # we mark the path
                         draw_square(pygame, self.screen, cell_n, LEMON_CHIFFON, PLAYER_SIZE, CELL_SIZE)
+                        pygame.time.delay(1000)
                         pygame.display.update()
                         fpsClock.tick(FPS)
                         nodes_left_in_layer -= 1
@@ -277,9 +278,6 @@ class Maze:
 
 if __name__ == "__main__":
     print(f'Welcome home Maze creator {time.time()}')
-    c1 = Cell(2, 50, None, None, None, None)
-    c2 = Cell(2, 50, None, None, None, None)
-    print(c1 == c2)
     m = Maze(1200, 1000, CELL_SIZE)
     m.create_maze()
     print(
