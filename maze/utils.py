@@ -1,3 +1,10 @@
+"""
+Maze Generator DFS
+Maze Solver BFS
+Luis Enrique Gonzalez
+Sunnyvale CA
+Noviembre 6, 2020
+"""
 from maze.Shape import Cell, Line
 
 
