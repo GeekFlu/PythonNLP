@@ -1,14 +1,16 @@
-import time
-import pygame
 import random
-from pygame import mixer
-from maze.Shape import Line, Cell
+import time
+import math
 from collections import deque
-from maze.utils import draw_line, draw_rectangle, draw_square
+
+import pygame
+from maze.Shape import Line, Cell
+from maze.utils import draw_line, draw_square, remove_walls, get_direction, is_there_path
 
 # Constants
-CELL_SIZE = 15
-PLAYER_SIZE = 9
+NUM_PLAYERS = 1
+CELL_SIZE = 20
+PLAYER_SIZE = math.ceil(CELL_SIZE * .53)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
@@ -17,10 +19,7 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 PINK = (255, 200, 200)
 NOOB = (255, 0, 0)
-
-# Direction Vectors
-DIRECTION_ROW = [-1, 1, 0, 0]
-DIRECTION_COL = [0, 0, 1, -1]
+LEMON_CHIFFON = (255, 250, 205)
 
 FPS = 90
 # frames per second setting
@@ -30,6 +29,7 @@ fpsClock = pygame.time.Clock()
 class Maze:
 
     def __init__(self, screen_width, screen_height, cell_size=10, margin=10):
+        self.start_bfs = False
         self.running = False
         if screen_width < 100 or screen_height < 100:
             raise ValueError(
@@ -44,6 +44,8 @@ class Maze:
         self.R = 0
         self.C = 0
         self.players_drawn = False
+        self.players = []
+        self.hero = None
 
     def create_maze(self):
         """
@@ -101,7 +103,7 @@ class Maze:
         for cell_row in self.cells:
             for cell in cell_row:
                 for wall in cell.walls.values():
-                    if not wall.is_duplicate and wall.is_drawable:
+                    if not wall.is_duplicate and wall.is_blocking_wall:
                         draw_line(pygame, self.screen, wall, WHITE)
 
         # Setting max grid Dimension
@@ -109,8 +111,8 @@ class Maze:
         self.C = len(self.cells[0])
 
         # Randomly we select the initial cell
-        rnd_row = random.randint(0, self.R)
-        rnd_col = random.randint(0, self.C)
+        rnd_row = random.randint(0, self.R - 1)
+        rnd_col = random.randint(0, self.C - 1)
 
         initial_cell = self.cells[rnd_row][rnd_col]
         initial_cell.set_visited()
@@ -135,7 +137,7 @@ class Maze:
                     current_cell = self.cells[current_cell_row][current_cell_col]
 
                     # Remove walls between current cell and rnd_cell
-                    self.remove_walls(current_cell, rnd_cell, current_cell_row, current_cell_col)
+                    remove_walls(current_cell, rnd_cell, current_cell_row, current_cell_col)
 
                     # Mark rnd cell as visited
                     current_cell.set_visited()
@@ -147,33 +149,97 @@ class Maze:
 
                     # repaint lines with black line
                     for wall in current_cell.walls.values():
-                        if not wall.is_drawable:
+                        if not wall.is_blocking_wall:
                             draw_line(pygame, self.screen, wall, BLACK)
                     for wall in rnd_cell.walls.values():
-                        if not wall.is_drawable:
+                        if not wall.is_blocking_wall:
                             draw_line(pygame, self.screen, wall, BLACK)
                     pygame.display.update()
                     fpsClock.tick(FPS)
 
             # Maze Generation has finished, create origin (blue) destination (Green)
             if not self.players_drawn:
-                draw_square(pygame, self.screen, self.get_random_cell(), DARK_BLUE, PLAYER_SIZE, CELL_SIZE)
-                draw_square(pygame, self.screen, self.get_random_cell(), RED, PLAYER_SIZE, CELL_SIZE)
-                draw_square(pygame, self.screen, self.get_random_cell(), RED, PLAYER_SIZE, CELL_SIZE)
-                draw_square(pygame, self.screen, self.get_random_cell(), RED, PLAYER_SIZE, CELL_SIZE)
-                draw_square(pygame, self.screen, self.get_random_cell(), RED, PLAYER_SIZE, CELL_SIZE)
-                draw_square(pygame, self.screen, self.get_random_cell(), GREEN, PLAYER_SIZE, CELL_SIZE)
-                draw_square(pygame, self.screen, self.get_random_cell(), GREEN, PLAYER_SIZE, CELL_SIZE)
-                draw_square(pygame, self.screen, self.get_random_cell(), GREEN, PLAYER_SIZE, CELL_SIZE)
-                draw_square(pygame, self.screen, self.get_random_cell(), GREEN, PLAYER_SIZE, CELL_SIZE)
+                self.hero = self.get_random_cell()
+                draw_square(pygame, self.screen, self.hero, BLUE, PLAYER_SIZE, CELL_SIZE)
+                for i in range(NUM_PLAYERS):
+                    player = self.get_random_cell()
+                    self.players.append(player)
+                    draw_square(pygame, self.screen, player, random.choice([RED, PINK]), PLAYER_SIZE,
+                                CELL_SIZE)
                 pygame.display.update()
                 fpsClock.tick(FPS)
                 self.players_drawn = True
+                self.start_bfs = True
+                self.set_cells_not_visited()
 
+            # We start BFS once the MAZE has been constructed by DFS
+            if self.start_bfs:
+                row_queue = []
+                col_queue = []
 
-    def explore_neighbours_bfs(self, current_cell):
-        neighbours = self.get_neighbours(current_cell.row, current_cell.col)
-        # TODO complete BFS https://youtu.be/09_LlHjoEiY?t=3239
+                # Variables used toi keep track number of steps taken to
+                move_count = 0
+                nodes_left_in_layer = 1
+                nodes_in_next_layer = 0
+                reached_end = False
+
+                row_queue.append(self.hero.row)
+                col_queue.append(self.hero.col)
+                self.hero.set_visited()
+                while len(row_queue) > 0:
+                    row = row_queue.pop()
+                    col = col_queue.pop()
+
+                    # only the first player for now TODO extend solution for all the players
+                    print(f"current Cell= {self.cells[row][col]} ---> {self.players[0]}")
+                    if self.cells[row][col] == self.players[0]:
+                        draw_square(pygame, self.screen, self.players[0], GREEN, PLAYER_SIZE, CELL_SIZE)
+                        pygame.display.update()
+                        fpsClock.tick(FPS)
+                        reached_end = True
+                        break
+
+                    # this is not that wrong
+                    neighbours = self.explore_neighbours_bfs(row, col)
+                    for cell_n in neighbours:
+                        row_queue.append(cell_n.row)
+                        col_queue.append(cell_n.col)
+                        cell_n.set_visited()
+                        nodes_in_next_layer += 1
+                        # we mark the path
+                        draw_square(pygame, self.screen, cell_n, LEMON_CHIFFON, PLAYER_SIZE, CELL_SIZE)
+                        pygame.display.update()
+                        fpsClock.tick(FPS)
+                        nodes_left_in_layer -= 1
+                        if nodes_left_in_layer == 0:
+                            nodes_left_in_layer = nodes_in_next_layer
+                            nodes_in_next_layer = 0
+                            move_count += 1
+
+                if reached_end:
+                    print(f"We found it move count = {move_count}")
+                    self.start_bfs = False
+
+    def explore_neighbours_bfs(self, row, col):
+        # BFS https://youtu.be/09_LlHjoEiY?t=3239
+        neighbours = []
+        for i in range(4):
+            rr, cc = get_direction(row, col, i)
+
+            # we skip bounds
+            if rr < 0 or cc < 0:
+                continue
+            if rr >= self.R or cc >= self.C:
+                continue
+
+            if self.cells[rr][cc].is_visited:
+                continue
+
+            # we have to determine if there is a pathway between current cell and next cell we use relative position
+            if is_there_path(self.cells[row][col], self.cells[rr][cc]):
+                neighbours.append(self.cells[rr][cc])
+
+        return neighbours
 
     def get_random_neighbour(self, current_cell):
         neighbours = self.get_neighbours(current_cell.row, current_cell.col)
@@ -185,9 +251,7 @@ class Maze:
     def get_neighbours(self, row, col):
         neighbours = []
         for i in range(4):
-            rr = row + DIRECTION_ROW[i]
-            cc = col + DIRECTION_COL[i]
-
+            rr, cc = get_direction(row, col, i)
             # we skip bounds
             if rr < 0 or cc < 0:
                 continue
@@ -200,35 +264,22 @@ class Maze:
             neighbours.append(self.cells[rr][cc])
         return neighbours
 
-    def remove_walls(self, current_cell, rnd_cell, current_row, current_col):
-        if current_row == rnd_cell.row:
-            relative_col_pos = current_col - rnd_cell.col
-            if relative_col_pos == 1:
-                # we remove current cell west wall and rnd east wall
-                current_cell.walls[Line.WEST].set_not_drawable()
-                rnd_cell.walls[Line.EAST].set_not_drawable()
-            elif relative_col_pos == -1:
-                # we remove current cell's east wall and rnd cell's west wall
-                current_cell.walls[Line.EAST].set_not_drawable()
-                rnd_cell.walls[Line.WEST].set_not_drawable()
-        elif current_col == rnd_cell.col:
-            relative_row_pos = current_row - rnd_cell.row
-            if relative_row_pos == 1:
-                # Remove current's North and Rnd's South
-                current_cell.walls[Line.NORTH].set_not_drawable()
-                rnd_cell.walls[Line.SOUTH].set_not_drawable()
-            elif relative_row_pos == -1:
-                current_cell.walls[Line.SOUTH].set_not_drawable()
-                rnd_cell.walls[Line.NORTH].set_not_drawable()
-
     def get_random_cell(self):
         rnd_row = random.randint(0, len(self.cells) - 1)
         rnd_col = random.randint(0, len(self.cells[0]) - 1)
         return self.cells[rnd_row][rnd_col]
 
+    def set_cells_not_visited(self):
+        for cell_row in self.cells:
+            for cell in cell_row:
+                cell.is_visited = False
+
 
 if __name__ == "__main__":
     print(f'Welcome home Maze creator {time.time()}')
+    c1 = Cell(2, 50, None, None, None, None)
+    c2 = Cell(2, 50, None, None, None, None)
+    print(c1 == c2)
     m = Maze(1200, 1000, CELL_SIZE)
     m.create_maze()
     print(
