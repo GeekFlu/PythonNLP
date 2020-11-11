@@ -9,6 +9,7 @@ import random
 import time
 import math
 from collections import deque
+from queue import Queue
 
 import pygame
 from maze.Shape import Line, Cell
@@ -16,7 +17,7 @@ from maze.utils import draw_line, draw_square, remove_walls, get_direction, is_t
 
 # Constants
 NUM_PLAYERS = 1
-CELL_SIZE = 40
+CELL_SIZE = 25
 PLAYER_SIZE = math.ceil(CELL_SIZE * .53)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
@@ -34,7 +35,7 @@ FPS = 90
 fpsClock = pygame.time.Clock()
 
 # DELAY
-DELAY = 300
+DELAY = 0
 
 
 class Maze:
@@ -183,8 +184,8 @@ class Maze:
 
             # We start BFS once the MAZE has been constructed by DFS
             if self.start_bfs:
-                row_queue = []
-                col_queue = []
+                row_queue = Queue()
+                col_queue = Queue()
 
                 # Variables used toi keep track number of steps taken to
                 move_count = 0
@@ -192,12 +193,12 @@ class Maze:
                 nodes_in_next_layer = 0
                 reached_end = False
 
-                row_queue.append(self.hero.row)
-                col_queue.append(self.hero.col)
+                row_queue.put(self.hero.row)
+                col_queue.put(self.hero.col)
                 self.hero.set_visited()
-                while len(row_queue) > 0:
-                    row = row_queue.pop()
-                    col = col_queue.pop()
+                while row_queue.qsize() > 0:
+                    row = row_queue.get()
+                    col = col_queue.get()
 
                     # only the first player for now TODO extend solution for all the players
                     print(f"current Cell= {self.cells[row][col]} ---> {self.players[0]}")
@@ -210,8 +211,8 @@ class Maze:
                     # this is not that wrong
                     neighbours = self.explore_neighbours_bfs(row, col)
                     for cell_n in neighbours:
-                        row_queue.append(cell_n.row)
-                        col_queue.append(cell_n.col)
+                        row_queue.put(cell_n.row)
+                        col_queue.put(cell_n.col)
                         cell_n.set_visited()
                         nodes_in_next_layer += 1
                         # we mark the path
@@ -285,7 +286,14 @@ class Maze:
 
 if __name__ == "__main__":
     print(f'Welcome home Maze creator {time.time()}')
-    m = Maze(1200, 1000, CELL_SIZE)
+    n = Queue()
+    n.put('a')
+    n.put('b')
+    n.put('c')
+    print(n.get())
+    print(n.get())
+    print(n.get())
+    m = Maze(1500, 1000, CELL_SIZE)
     m.create_maze()
     print(
         f"(rows, cols) in the grid ({len(m.cells)}, {len(m.cells[0])}), total cells = {len(m.cells) * len(m.cells[0])}")
