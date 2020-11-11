@@ -1,3 +1,10 @@
+"""
+Maze Generator DFS
+Maze Solver BFS
+Luis Enrique Gonzalez
+Sunnyvale CA
+Noviembre 6, 2020
+"""
 import random
 import time
 import math
@@ -5,11 +12,11 @@ from collections import deque
 
 import pygame
 from maze.Shape import Line, Cell
-from maze.utils import draw_line, draw_square, remove_walls, get_direction, is_there_path
+from maze.utils import draw_line, draw_square, remove_walls, get_direction, is_there_path, update_display
 
 # Constants
 NUM_PLAYERS = 1
-CELL_SIZE = 100
+CELL_SIZE = 40
 PLAYER_SIZE = math.ceil(CELL_SIZE * .53)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
@@ -20,10 +27,14 @@ BLACK = (0, 0, 0)
 PINK = (255, 200, 200)
 NOOB = (255, 0, 0)
 LEMON_CHIFFON = (255, 250, 205)
+YELLOW = (255, 255, 0)
 
 FPS = 90
 # frames per second setting
 fpsClock = pygame.time.Clock()
+
+# DELAY
+DELAY = 300
 
 
 class Maze:
@@ -154,8 +165,7 @@ class Maze:
                     for wall in rnd_cell.walls.values():
                         if not wall.is_blocking_wall:
                             draw_line(pygame, self.screen, wall, BLACK)
-                    pygame.display.update()
-                    fpsClock.tick(FPS)
+                    update_display(pygame, fpsClock, FPS)
 
             # Maze Generation has finished, create origin (blue) destination (Green)
             if not self.players_drawn:
@@ -166,8 +176,7 @@ class Maze:
                     self.players.append(player)
                     draw_square(pygame, self.screen, player, random.choice([RED, PINK]), PLAYER_SIZE,
                                 CELL_SIZE)
-                pygame.display.update()
-                fpsClock.tick(FPS)
+                update_display(pygame, fpsClock, FPS)
                 self.players_drawn = True
                 self.start_bfs = True
                 self.set_cells_not_visited()
@@ -194,8 +203,7 @@ class Maze:
                     print(f"current Cell= {self.cells[row][col]} ---> {self.players[0]}")
                     if self.cells[row][col] == self.players[0]:
                         draw_square(pygame, self.screen, self.players[0], GREEN, PLAYER_SIZE, CELL_SIZE)
-                        pygame.display.update()
-                        fpsClock.tick(FPS)
+                        update_display(pygame, fpsClock, FPS)
                         reached_end = True
                         break
 
@@ -207,10 +215,9 @@ class Maze:
                         cell_n.set_visited()
                         nodes_in_next_layer += 1
                         # we mark the path
-                        draw_square(pygame, self.screen, cell_n, LEMON_CHIFFON, PLAYER_SIZE, CELL_SIZE)
-                        pygame.time.delay(1000)
-                        pygame.display.update()
-                        fpsClock.tick(FPS)
+                        draw_square(pygame, self.screen, cell_n, YELLOW, PLAYER_SIZE, CELL_SIZE)
+                        pygame.time.delay(DELAY)
+                        update_display(pygame, fpsClock, FPS)
                         nodes_left_in_layer -= 1
                         if nodes_left_in_layer == 0:
                             nodes_left_in_layer = nodes_in_next_layer
