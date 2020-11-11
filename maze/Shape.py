@@ -8,7 +8,7 @@ class Line:
         self.start = (start_x, start_y)
         self.end = (end_x, end_y)
         self.is_duplicate = False
-        self.is_drawable = True
+        self.is_blocking_wall = True
 
     def __str__(self):
         return f"Start Point {self.start} , End Point {self.end}"
@@ -24,11 +24,14 @@ class Line:
     def set_is_duplicate(self):
         self.is_duplicate = True
 
-    def set_not_drawable(self):
-        self.is_drawable = False
+    def set_not_blocking_wall(self):
+        self.is_blocking_wall = False
 
 
 class Cell:
+    # Direction Vectors
+    DIRECTION_ROW = [-1, 1, 0, 0]
+    DIRECTION_COL = [0, 0, 1, -1]
 
     def __init__(self, row: int, col: int, _north: Line, _south: Line, _east: Line, _west: Line):
         self.is_visited = False
@@ -47,6 +50,11 @@ class Cell:
 
     def set_visited(self):
         self.is_visited = True
+
+    def __eq__(self, other):
+        cols_eq = self.col == other.col
+        rows_eq = self.row == other.row
+        return cols_eq and rows_eq
 
     def __str__(self):
         return f"Cell({self.row},{self.col})"
