@@ -5,6 +5,7 @@ Luis Enrique Gonzalez
 Sunnyvale CA
 Noviembre 6, 2020
 """
+import os
 import random
 import time
 import math
@@ -17,7 +18,7 @@ from maze.utils import draw_line, draw_square, remove_walls, get_direction, is_t
 
 # Constants
 NUM_PLAYERS = 1
-CELL_SIZE = 25
+CELL_SIZE = 150
 PLAYER_SIZE = math.ceil(CELL_SIZE * .53)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
@@ -29,13 +30,14 @@ PINK = (255, 200, 200)
 NOOB = (255, 0, 0)
 LEMON_CHIFFON = (255, 250, 205)
 YELLOW = (255, 255, 0)
+GREEN_YELLOW = (173, 255, 47)
 
 FPS = 90
 # frames per second setting
 fpsClock = pygame.time.Clock()
 
 # DELAY
-DELAY = 0
+DELAY = 460
 
 
 class Maze:
@@ -58,6 +60,7 @@ class Maze:
         self.players_drawn = False
         self.players = []
         self.hero = None
+        self.paths = dict()
 
     def create_maze(self):
         """
@@ -106,6 +109,9 @@ class Maze:
 
         # Tittle
         pygame.display.set_caption("Maze Creator")
+
+        # icon
+        pygame.display.set_icon(pygame.image.load(os.path.join('assets', 'maze3.png')))
 
         # Create the screen
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
@@ -182,6 +188,7 @@ class Maze:
                 self.start_bfs = True
                 self.set_cells_not_visited()
 
+            paths = {}
             # We start BFS once the MAZE has been constructed by DFS
             if self.start_bfs:
                 row_queue = Queue()
@@ -196,13 +203,17 @@ class Maze:
                 row_queue.put(self.hero.row)
                 col_queue.put(self.hero.col)
                 self.hero.set_visited()
+                initial_position = deque()
+                initial_position.append(self.hero.get_position_tuple())
+                self.paths[(self.hero.get_position_tuple())] = initial_position
                 while row_queue.qsize() > 0:
                     row = row_queue.get()
                     col = col_queue.get()
 
                     # only the first player for now TODO extend solution for all the players
-                    print(f"current Cell= {self.cells[row][col]} ---> {self.players[0]}")
-                    if self.cells[row][col] == self.players[0]:
+                    current_cell = self.cells[row][col]
+                    print(f"current Cell= {current_cell} ---> {self.players[0]}")
+                    if current_cell == self.players[0]:
                         draw_square(pygame, self.screen, self.players[0], GREEN, PLAYER_SIZE, CELL_SIZE)
                         update_display(pygame, fpsClock, FPS)
                         reached_end = True
@@ -216,7 +227,7 @@ class Maze:
                         cell_n.set_visited()
                         nodes_in_next_layer += 1
                         # we mark the path
-                        draw_square(pygame, self.screen, cell_n, YELLOW, PLAYER_SIZE, CELL_SIZE)
+                        draw_square(pygame, self.screen, cell_n, GREEN_YELLOW, PLAYER_SIZE, CELL_SIZE)
                         pygame.time.delay(DELAY)
                         update_display(pygame, fpsClock, FPS)
                         nodes_left_in_layer -= 1
@@ -225,8 +236,17 @@ class Maze:
                             nodes_in_next_layer = 0
                             move_count += 1
 
+                        # Get current cell path
+                        current_path = self.paths[current_cell.get_position_tuple()]
+                        if len(current_path) > 0 and current_path[-1] == current_cell.get_position_tuple():
+                            current_path.append(cell_n.get_position_tuple())
+
+
+
                 if reached_end:
                     print(f"We found it move count = {move_count}")
+                    for col in range(col_queue.qsize()):
+                        print(f"Element in queue Cell({row_queue.get()},{col_queue.get()})")
                     self.start_bfs = False
 
     def explore_neighbours_bfs(self, row, col):
@@ -293,6 +313,13 @@ if __name__ == "__main__":
     print(n.get())
     print(n.get())
     print(n.get())
+    dd = deque()
+
+    cc = dict()
+    cc[(0, 0)] = (0, 1)
+    cc[(0, 0)] = (0, 2)
+    print(cc[(0, 0)])
+
     m = Maze(1500, 1000, CELL_SIZE)
     m.create_maze()
     print(
