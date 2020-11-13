@@ -44,6 +44,7 @@ class Cell:
         self.is_visited = False
         self.row = row
         self.col = col
+        self.position_tuple = (row, col)
         # To test we are going to set one wall not drawable
         self.walls = dict(north=_north, south=_south, east=_east, west=_west)
 
@@ -65,3 +66,6 @@ class Cell:
 
     def __str__(self):
         return f"Cell({self.row},{self.col})"
+
+    def get_position_tuple(self):
+        return self.position_tuple
