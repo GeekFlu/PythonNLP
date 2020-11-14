@@ -67,5 +67,5 @@ class Cell:
     def __str__(self):
         return f"Cell({self.row},{self.col})"
 
-    def get_position_tuple(self):
+    def get_position(self):
         return self.position_tuple
