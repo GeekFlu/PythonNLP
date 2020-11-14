@@ -12,7 +12,6 @@ def update_display(_pygame, _fps_clock, _fps):
     _pygame.display.update()
     _fps_clock.tick(_fps)
 
-
 def draw_line(pygame, screen, line: Line, color):
     pygame.draw.line(screen, color, line.start, line.end)
 
@@ -39,6 +38,14 @@ def draw_square(pygame, screen, cell: Cell, color, side, rectangle_size):
     pygame.draw.rect(screen, color,
                      pygame.Rect(cell.walls[Line.NORTH].start[0] + delta_x, cell.walls[Line.NORTH].start[1] + delta_y,
                                  side, side))
+
+
+def draw_circle(pygame, screen, cell, radius, color):
+    # find north's mid point and west's mid point then take x_mid_point_north, y_mid_point_west
+    north_wall_mp = cell.walls[Line.NORTH].mid_point()
+    west_wall_mp = cell.walls[Line.WEST].mid_point()
+    circle_center = (north_wall_mp[0], west_wall_mp[1])
+    pygame.draw.circle(screen, color, circle_center, radius)
 
 
 def remove_walls(current_cell, rnd_cell, current_row, current_col):

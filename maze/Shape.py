@@ -34,6 +34,11 @@ class Line:
     def set_not_blocking_wall(self):
         self.is_blocking_wall = False
 
+    def mid_point(self):
+        m_x = (self.start[0] + self.end[0]) / 2
+        m_y = (self.start[1] + self.end[1]) / 2
+        return m_x, m_y
+
 
 class Cell:
     # Direction Vectors

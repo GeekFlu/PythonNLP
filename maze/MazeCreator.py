@@ -14,12 +14,12 @@ from queue import Queue
 
 import pygame
 from maze.Shape import Line, Cell
-from maze.utils import draw_line, draw_square, remove_walls, get_direction, is_there_path, update_display
+from maze.utils import draw_line, draw_square, remove_walls, get_direction, is_there_path, update_display, draw_circle
 
 # Constants
 NUM_PLAYERS = 1
-CELL_SIZE = 20
-PLAYER_SIZE = math.ceil(CELL_SIZE * .53)
+CELL_SIZE = 25
+PLAYER_SIZE = math.ceil(CELL_SIZE * .70)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
@@ -122,7 +122,7 @@ class Maze:
             for cell in cell_row:
                 for wall in cell.walls.values():
                     if not wall.is_duplicate and wall.is_blocking_wall:
-                        draw_line(pygame, self.screen, wall, WHITE)
+                        draw_line(pygame, self.screen, wall, (102,47,0))
 
         # Setting max grid Dimension
         self.R = len(self.cells)
@@ -213,7 +213,7 @@ class Maze:
                     current_cell = self.cells[row][col]
                     # print(f"current Cell= {current_cell} ---> {self.players[0]}")
                     if current_cell == self.players[0]:
-                        draw_square(pygame, self.screen, self.players[0], RED, PLAYER_SIZE, CELL_SIZE)
+                        draw_square(pygame, self.screen, self.players[0], WHITE, PLAYER_SIZE, CELL_SIZE)
                         update_display(pygame, fpsClock, FPS)
                         reached_end = True
                         break
@@ -251,10 +251,17 @@ class Maze:
                     print(f"We found it move count = {move_count}")
                     # lets paint the final route
 
+                    for cells_rows in self.cells:
+                        for cell in cells_rows:
+                            if cell != self.hero and cell != self.players[0]:
+                                draw_square(pygame, self.screen, cell, BLACK, PLAYER_SIZE, CELL_SIZE)
+
                     final_route = self.paths[self.players[0].get_position()]
                     for row, col in final_route:
-                        if self.cells[row][col] != self.hero and self.cells[row][col] != self.players[0]:
-                            draw_square(pygame, self.screen, self.cells[row][col], DARK_BLUE, PLAYER_SIZE, CELL_SIZE)
+                        c_cell = self.cells[row][col]
+                        if c_cell != self.hero and c_cell != self.players[0]:
+                            draw_square(pygame, self.screen, c_cell, BLACK, PLAYER_SIZE, CELL_SIZE)
+                            draw_circle(pygame, self.screen, c_cell, (CELL_SIZE - PLAYER_SIZE) / 2, RED)
                             update_display(pygame, fpsClock, FPS)
                     self.start_bfs = False
 
@@ -340,7 +347,7 @@ if __name__ == "__main__":
     inner.append((1, 2))
     inner.append((1, 3))
 
-    m = Maze(1500, 1000, CELL_SIZE)
+    m = Maze(1800, 1000, CELL_SIZE)
     m.create_maze()
     print(
         f"(rows, cols) in the grid ({len(m.cells)}, {len(m.cells[0])}), total cells = {len(m.cells) * len(m.cells[0])}")
