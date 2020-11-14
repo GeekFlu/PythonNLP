@@ -18,7 +18,7 @@ from maze.utils import draw_line, draw_square, remove_walls, get_direction, is_t
 
 # Constants
 NUM_PLAYERS = 1
-CELL_SIZE = 150
+CELL_SIZE = 20
 PLAYER_SIZE = math.ceil(CELL_SIZE * .53)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
@@ -37,7 +37,7 @@ FPS = 90
 fpsClock = pygame.time.Clock()
 
 # DELAY
-DELAY = 460
+DELAY = 0
 
 
 class Maze:
@@ -188,11 +188,10 @@ class Maze:
                 self.start_bfs = True
                 self.set_cells_not_visited()
 
-            paths = {}
             # We start BFS once the MAZE has been constructed by DFS
             if self.start_bfs:
-                row_queue = Queue()
-                col_queue = Queue()
+                row_queue = deque()
+                col_queue = deque()
 
                 # Variables used toi keep track number of steps taken to
                 move_count = 0
@@ -200,21 +199,21 @@ class Maze:
                 nodes_in_next_layer = 0
                 reached_end = False
 
-                row_queue.put(self.hero.row)
-                col_queue.put(self.hero.col)
+                row_queue.append(self.hero.row)
+                col_queue.append(self.hero.col)
                 self.hero.set_visited()
-                initial_position = deque()
-                initial_position.append(self.hero.get_position_tuple())
-                self.paths[(self.hero.get_position_tuple())] = initial_position
-                while row_queue.qsize() > 0:
-                    row = row_queue.get()
-                    col = col_queue.get()
+                initial_position = [self.hero.get_position()]
+                self.paths[(self.hero.get_position())] = initial_position
+                while len(row_queue) > 0:
+                    # deque is LIFO but using pop left we get queue behaviour FIFO
+                    row = row_queue.popleft()
+                    col = col_queue.popleft()
 
                     # only the first player for now TODO extend solution for all the players
                     current_cell = self.cells[row][col]
-                    print(f"current Cell= {current_cell} ---> {self.players[0]}")
+                    # print(f"current Cell= {current_cell} ---> {self.players[0]}")
                     if current_cell == self.players[0]:
-                        draw_square(pygame, self.screen, self.players[0], GREEN, PLAYER_SIZE, CELL_SIZE)
+                        draw_square(pygame, self.screen, self.players[0], RED, PLAYER_SIZE, CELL_SIZE)
                         update_display(pygame, fpsClock, FPS)
                         reached_end = True
                         break
@@ -222,11 +221,11 @@ class Maze:
                     # this is not that wrong
                     neighbours = self.explore_neighbours_bfs(row, col)
                     for cell_n in neighbours:
-                        row_queue.put(cell_n.row)
-                        col_queue.put(cell_n.col)
+                        row_queue.append(cell_n.row)
+                        col_queue.append(cell_n.col)
                         cell_n.set_visited()
                         nodes_in_next_layer += 1
-                        # we mark the path
+                        # we mark the paths
                         draw_square(pygame, self.screen, cell_n, GREEN_YELLOW, PLAYER_SIZE, CELL_SIZE)
                         pygame.time.delay(DELAY)
                         update_display(pygame, fpsClock, FPS)
@@ -237,16 +236,26 @@ class Maze:
                             move_count += 1
 
                         # Get current cell path
-                        current_path = self.paths[current_cell.get_position_tuple()]
-                        if len(current_path) > 0 and current_path[-1] == current_cell.get_position_tuple():
-                            current_path.append(cell_n.get_position_tuple())
-
-
+                        current_path = self.paths[current_cell.get_position()]
+                        # Step 1 create new Key
+                        self.paths[cell_n.get_position()] = []
+                        # Step 2 get current path and add all the positions
+                        for position in current_path:
+                            self.paths[cell_n.get_position()].append(position)
+                        # Step 3 append current position to path
+                        self.paths[cell_n.get_position()].append(cell_n.get_position())
+                    # delete current cell path key
+                    del self.paths[current_cell.get_position()]
 
                 if reached_end:
                     print(f"We found it move count = {move_count}")
-                    for col in range(col_queue.qsize()):
-                        print(f"Element in queue Cell({row_queue.get()},{col_queue.get()})")
+                    # lets paint the final route
+
+                    final_route = self.paths[self.players[0].get_position()]
+                    for row, col in final_route:
+                        if self.cells[row][col] != self.hero and self.cells[row][col] != self.players[0]:
+                            draw_square(pygame, self.screen, self.cells[row][col], DARK_BLUE, PLAYER_SIZE, CELL_SIZE)
+                            update_display(pygame, fpsClock, FPS)
                     self.start_bfs = False
 
     def explore_neighbours_bfs(self, row, col):
@@ -314,11 +323,22 @@ if __name__ == "__main__":
     print(n.get())
     print(n.get())
     dd = deque()
+    dd.append('aa')
+    dd.append('bb')
+    dd.append('cc')
+    print(dd.popleft())
+    print(dd.popleft())
+    print(dd.popleft())
 
     cc = dict()
     cc[(0, 0)] = (0, 1)
     cc[(0, 0)] = (0, 2)
     print(cc[(0, 0)])
+
+    lst = list()
+    inner = list()
+    inner.append((1, 2))
+    inner.append((1, 3))
 
     m = Maze(1500, 1000, CELL_SIZE)
     m.create_maze()
