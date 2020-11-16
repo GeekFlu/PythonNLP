@@ -5,21 +5,20 @@ Luis Enrique Gonzalez
 Sunnyvale CA
 Noviembre 6, 2020
 """
+
 import os
 import random
 import time
 import math
 from collections import deque
-from queue import Queue
 
 import pygame
 from maze.Shape import Line, Cell
-from maze.utils import draw_line, draw_square, remove_walls, get_direction, is_there_path, update_display, draw_circle
+from maze.utils import draw_line, draw_square, remove_walls, get_direction, is_there_path, update_display, draw_circle, \
+    draw_line_between_cells
 
 # Constants
 NUM_PLAYERS = 1
-CELL_SIZE = 60
-PLAYER_SIZE = math.ceil(CELL_SIZE * .80)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
@@ -37,14 +36,14 @@ FPS = 90
 # frames per second setting
 fpsClock = pygame.time.Clock()
 
-# DELAY
-DELAY = 0
-
 
 class Maze:
+    DOTTED_PATH = "dotted"
+    RECTANGLE_PATH = "rectangle"
+    LINED_PATH = "lined"
 
-    def __init__(self, screen_width, screen_height, cell_size=10, margin=10):
-        self.start_bfs = False
+    def __init__(self, screen_width, screen_height, cell_size=10, margin=10, delay=0):
+        self.start_maze_solver = False
         self.running = False
         if screen_width < 100 or screen_height < 100:
             raise ValueError(
@@ -53,6 +52,7 @@ class Maze:
         self.screen_width = screen_width
         self.screen = None
         self.cell_size = cell_size
+        self.player_size = math.ceil(cell_size * .40)
         self.margin = margin
         self.lines = []
         self.cells = []
@@ -62,6 +62,7 @@ class Maze:
         self.players = []
         self.hero = None
         self.paths = dict()
+        self.delay = delay
 
     def create_maze(self):
         """
@@ -74,7 +75,7 @@ class Maze:
         # Call show maze
         self.running = True
 
-    def show_maze(self):
+    def show_maze(self, path_shape, is_bfs=True):
         # stack to start DFS
         cell_stack_row = deque()
         cell_stack_col = deque()
@@ -85,8 +86,8 @@ class Maze:
         # Tittle
         pygame.display.set_caption("Maze Creator")
 
-        # icon
-        pygame.display.set_icon(pygame.image.load(os.path.join('assets', 'maze3.png')))
+        # icon Need work to display
+        # pygame.display.set_icon(pygame.image.load(os.path.join('assets', 'maze3.png')))
 
         # Create the screen
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
@@ -144,20 +145,20 @@ class Maze:
             # Maze Generation has finished, create origin (blue) destination (Green)
             if not self.players_drawn:
                 self.hero = self.get_random_cell()
-                draw_square(pygame, self.screen, self.hero, BLUE, PLAYER_SIZE, CELL_SIZE)
+                draw_square(pygame, self.screen, self.hero, BLUE, self.player_size, self.cell_size)
                 for i in range(NUM_PLAYERS):
                     player = self.get_random_cell()
                     self.players.append(player)
-                    draw_square(pygame, self.screen, player, random.choice([RED, PINK]), PLAYER_SIZE,
-                                CELL_SIZE)
+                    draw_square(pygame, self.screen, player, random.choice([RED, PINK]), self.player_size,
+                                self.cell_size)
                 update_display(pygame, fpsClock, FPS)
                 self.players_drawn = True
-                self.start_bfs = True
+                self.start_maze_solver = True
                 self.set_cells_not_visited()
 
             # We start BFS once the MAZE has been constructed by DFS
-            if self.start_bfs:
-                self.execute_solver(False)
+            if self.start_maze_solver:
+                self.execute_solver(is_bfs, path_shape)
 
     def explore_neighbours(self, row, col):
         """
@@ -221,19 +222,31 @@ class Maze:
             for cell in cell_row:
                 cell.is_visited = False
 
-    def draw_route(self, color):
+    def draw_route(self, color, path_type):
         for cells_rows in self.cells:
             for cell in cells_rows:
                 if cell != self.hero and cell != self.players[0]:
-                    draw_square(pygame, self.screen, cell, BLACK, PLAYER_SIZE, CELL_SIZE)
+                    draw_square(pygame, self.screen, cell, BLACK, self.player_size, self.cell_size)
 
         final_route = self.paths[self.players[0].get_position()]
-        for row, col in final_route:
-            c_cell = self.cells[row][col]
-            if c_cell != self.hero and c_cell != self.players[0]:
-                draw_square(pygame, self.screen, c_cell, BLACK, PLAYER_SIZE, CELL_SIZE)
-                draw_circle(pygame, self.screen, c_cell, (CELL_SIZE - PLAYER_SIZE) / 2, color)
-                update_display(pygame, fpsClock, FPS)
+        if path_type != Maze.LINED_PATH:
+            for row, col in final_route:
+                c_cell = self.cells[row][col]
+                if c_cell != self.hero and c_cell != self.players[0]:
+                    if path_type == Maze.DOTTED_PATH:
+                        draw_circle(pygame, self.screen, c_cell, (self.cell_size - self.player_size) / 2, color)
+                    elif path_type == Maze.RECTANGLE_PATH:
+                        draw_square(pygame, self.screen, c_cell, color, self.player_size, self.cell_size)
+            update_display(pygame, fpsClock, FPS)
+        else:
+            size_path = len(final_route)
+            for i in range(size_path):
+                if i < size_path - 1:
+                    s_row, s_col = final_route[i]
+                    e_row, e_col = final_route[i + 1]
+                    draw_line_between_cells(pygame, self.screen, self.cells[s_row][s_col], self.cells[e_row][e_col],
+                                            GREEN_YELLOW)
+                    update_display(pygame, fpsClock, FPS)
 
     def draw_grid(self, color):
         for cell_row in self.cells:
@@ -279,7 +292,7 @@ class Maze:
             if not wall.is_blocking_wall:
                 draw_line(pygame, self.screen, wall, color)
 
-    def execute_solver(self, is_bfs=True):
+    def execute_solver(self, is_bfs, path_shape):
         row_queue = deque()
         col_queue = deque()
 
@@ -305,7 +318,7 @@ class Maze:
 
             current_cell: Cell = self.cells[row][col]
             if current_cell == self.players[0]:
-                draw_square(pygame, self.screen, self.players[0], WHITE, PLAYER_SIZE, CELL_SIZE)
+                draw_square(pygame, self.screen, self.players[0], WHITE, self.player_size, self.cell_size)
                 update_display(pygame, fpsClock, FPS)
                 reached_end = True
                 break
@@ -318,8 +331,8 @@ class Maze:
                 cell_n.set_visited()
                 nodes_in_next_layer += 1
                 # we mark the paths
-                draw_square(pygame, self.screen, cell_n, GREEN_YELLOW, PLAYER_SIZE, CELL_SIZE)
-                pygame.time.delay(DELAY)
+                draw_square(pygame, self.screen, cell_n, GREEN_YELLOW, self.player_size, self.cell_size)
+                pygame.time.delay(self.delay)
                 update_display(pygame, fpsClock, FPS)
                 nodes_left_in_layer -= 1
                 if nodes_left_in_layer == 0:
@@ -342,39 +355,21 @@ class Maze:
         if reached_end:
             print(f"We found it move count = {move_count}")
             # lets paint the final route
-            self.draw_route(GREEN_YELLOW)
-            self.start_bfs = False
+            self.draw_route(GREEN_YELLOW, path_shape)
+            self.start_maze_solver = False
 
 
 if __name__ == "__main__":
     print(f'Welcome home Maze creator {time.time()}')
-    n = Queue()
-    n.put('a')
-    n.put('b')
-    n.put('c')
-    print(n.get())
-    print(n.get())
-    print(n.get())
-    dd = deque()
-    dd.append('aa')
-    dd.append('bb')
-    dd.append('cc')
-    print(dd.popleft())
-    print(dd.popleft())
-    print(dd.popleft())
-
-    cc = dict()
-    cc[(0, 0)] = (0, 1)
-    cc[(0, 0)] = (0, 2)
-    print(cc[(0, 0)])
-
-    lst = list()
-    inner = list()
-    inner.append((1, 2))
-    inner.append((1, 3))
-
-    m = Maze(1800, 1000, CELL_SIZE)
+    margin = 20
+    m = Maze(1800, 1000, 88, margin, 1)
     m.create_maze()
     print(
         f"(rows, cols) in the grid ({len(m.cells)}, {len(m.cells[0])}), total cells = {len(m.cells) * len(m.cells[0])}")
-    m.show_maze()
+    m.show_maze(Maze.DOTTED_PATH)
+
+    m1 = Maze(500, 500, 15)
+    m1.create_maze()
+    print(
+        f"(rows, cols) in the grid ({len(m.cells)}, {len(m.cells[0])}), total cells = {len(m.cells) * len(m.cells[0])}")
+    m1.show_maze(Maze.LINED_PATH, False)
