@@ -12,8 +12,30 @@ def update_display(_pygame, _fps_clock, _fps):
     _pygame.display.update()
     _fps_clock.tick(_fps)
 
+
 def draw_line(pygame, screen, line: Line, color):
     pygame.draw.line(screen, color, line.start, line.end)
+
+
+def draw_line_between_cells(pygame, screen, start_cell, end_cell, color, line_thickness=3):
+    """
+    This method will draw a line between cells midpoint
+    :param line_thickness:
+    :param pygame: pygame
+    :param screen: surface to paint the objects
+    :param start_cell: start cell to calculate mid point
+    :param end_cell: end cell to calculate mid point
+    :param color:
+    :return:
+    """
+    sc_north_wall_mp = start_cell.walls[Line.NORTH].mid_point()
+    sc_west_wall_mp = start_cell.walls[Line.WEST].mid_point()
+
+    ec_north_wall_mp = end_cell.walls[Line.NORTH].mid_point()
+    ec_west_wall_mp = end_cell.walls[Line.WEST].mid_point()
+    start_point = (sc_north_wall_mp[0], sc_west_wall_mp[1])
+    end_point = (ec_north_wall_mp[0], ec_west_wall_mp[1])
+    pygame.draw.line(screen, color, start_point, end_point, line_thickness)
 
 
 def draw_rectangle(pygame, screen, cell: Cell, color, width, height):
@@ -82,23 +104,19 @@ def is_there_path(current_cell, next_cell):
         relative_col_pos = current_cell.col - next_cell.col
         if relative_col_pos == 1:
             # we remove current cell west wall and rnd east wall
-            if not current_cell.walls[Line.WEST].is_blocking_wall and not next_cell.walls[
-                Line.EAST].set_not_blocking_wall():
+            if not current_cell.walls[Line.WEST].is_blocking_wall and not next_cell.walls[Line.EAST].set_not_blocking_wall():
                 is_path = True
         elif relative_col_pos == -1:
             # we remove current cell's east wall and rnd cell's west wall
-            if not current_cell.walls[Line.EAST].is_blocking_wall and not next_cell.walls[
-                Line.WEST].set_not_blocking_wall():
+            if not current_cell.walls[Line.EAST].is_blocking_wall and not next_cell.walls[Line.WEST].set_not_blocking_wall():
                 is_path = True
     elif current_cell.col == next_cell.col:
         relative_row_pos = current_cell.row - next_cell.row
         if relative_row_pos == 1:
             # Remove current's North and Rnd's South
-            if not current_cell.walls[Line.NORTH].is_blocking_wall and not next_cell.walls[
-                Line.SOUTH].set_not_blocking_wall():
+            if not current_cell.walls[Line.NORTH].is_blocking_wall and not next_cell.walls[Line.SOUTH].set_not_blocking_wall():
                 is_path = True
         elif relative_row_pos == -1:
-            if not current_cell.walls[Line.SOUTH].is_blocking_wall and not next_cell.walls[
-                Line.NORTH].set_not_blocking_wall():
+            if not current_cell.walls[Line.SOUTH].is_blocking_wall and not next_cell.walls[Line.NORTH].set_not_blocking_wall():
                 is_path = True
     return is_path
