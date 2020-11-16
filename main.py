@@ -1,13 +1,13 @@
 from maze.MazeCreator import Maze
 
 
-def print_maze_info(m):
-    print(f"(rows, cols) in the grid ({len(m.cells)}, {len(m.cells[0])}), total cells = {len(m.cells) * len(m.cells[0])}")
+def print_maze_info(maze):
+    print(f"(rows, cols) in the grid ({len(maze.cells)}, {len(maze.cells[0])}), total cells = {len(maze.cells) * len(maze.cells[0])}")
 
 
 if __name__ == '__main__':
     print('Maze Example')
-    m = Maze(1800, 1000, 88, 10, 1)
+    m = Maze(1800, 1000, 30, 10, 1)
     m.create_maze()
     print_maze_info(m)
     m.show_maze(Maze.DOTTED_PATH)
