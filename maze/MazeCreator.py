@@ -52,17 +52,16 @@ class Maze:
         self.screen_width = screen_width
         self.screen = None
         self.cell_size = cell_size
-        self.player_size = math.ceil(cell_size * .40)
+        self.player_size = math.ceil(cell_size * .60)
         self.margin = margin
         self.lines = []
         self.cells = []
         self.R = 0
         self.C = 0
-        self.players_drawn = False
-        self.players = []
-        self.hero = None
+        self.players = [None, None]
         self.paths = dict()
         self.delay = delay
+        self.solving = False
 
     def create_maze(self):
         """
@@ -95,20 +94,13 @@ class Maze:
 
         # Drawing the grid
         self.draw_grid(ORANGE_BROWN)
+        update_display(pygame, fpsClock, FPS)
 
         # Setting max grid Dimension
         self.R = len(self.cells)
         self.C = len(self.cells[0])
 
-        # Randomly we select the initial cell
-        rnd_row = random.randint(0, self.R - 1)
-        rnd_col = random.randint(0, self.C - 1)
-
-        initial_cell = self.cells[rnd_row][rnd_col]
-        initial_cell.set_visited()
-        cell_stack_row.append(initial_cell.row)
-        cell_stack_col.append(initial_cell.col)
-
+        counter = 0
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -116,53 +108,76 @@ class Maze:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     pos_x, pos_y = event.pos
                     clicked_cell = self.get_cell(pos_x, pos_y)
-                    print(clicked_cell)
+                    if counter % 2 == 0:
+                        # we create a hero pos 0
+                        if self.players[0] is not None:
+                            draw_square(pygame, self.screen, self.players[0], BLACK, self.player_size, self.cell_size)
 
-            # Both stacks are in sync
-            while len(cell_stack_row) > 0:
-                current_cell_row = cell_stack_row.pop()
-                current_cell_col = cell_stack_col.pop()
-                rnd_cell = self.get_random_neighbour(self.cells[current_cell_row][current_cell_col])
-                if rnd_cell is not None:
-                    # Push current cell to Stack
-                    cell_stack_row.append(current_cell_row)
-                    cell_stack_col.append(current_cell_col)
-                    # Get current from grid
-                    current_cell = self.cells[current_cell_row][current_cell_col]
-
-                    # Remove walls between current cell and rnd_cell
-                    remove_walls(current_cell, rnd_cell, current_cell_row, current_cell_col)
-
-                    # Mark rnd cell as visited
-                    current_cell.set_visited()
-
-                    # Push rnd cell to the stacks
-                    rnd_cell.set_visited()
-                    cell_stack_row.append(rnd_cell.row)
-                    cell_stack_col.append(rnd_cell.col)
-
-                    # repaint lines with black line
-                    self.draw_walls(current_cell.walls, BLACK)
-                    self.draw_walls(rnd_cell.walls, BLACK)
+                        self.players[0] = clicked_cell
+                        draw_square(pygame, self.screen, clicked_cell, BLUE, self.player_size, self.cell_size)
+                    else:
+                        if self.players[1] is not None:
+                            draw_square(pygame, self.screen, self.players[1], BLACK, self.player_size, self.cell_size)
+                        # we create the target
+                        self.players[1] = clicked_cell
+                        draw_square(pygame, self.screen, clicked_cell, random.choice([RED, PINK]), self.player_size,
+                                    self.cell_size)
                     update_display(pygame, fpsClock, FPS)
+                    print(clicked_cell)
+                    counter += 1
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LEFT:
+                        print("Pressed left")
+                    if event.key == pygame.K_RIGHT:
+                        print("Pressed right")
+                    if event.key == pygame.K_UP:
+                        print("Pressed up")
+                    if event.key == pygame.K_DOWN:
+                        print("Pressed down")
+                    if event.key == pygame.K_SPACE:
+                        print("Space BAR pressed")
+                        is_target_placed = self.players[1] is not None and type(self.players[1]) is Cell
+                        is_hero_placed = self.players[0] is not None and type(self.players[0]) is Cell
+                        if is_hero_placed and is_target_placed and not self.solving:
+                            self.solving = True
+                            # Both stacks are in sync
+                            initial_cell = self.players[0]
+                            initial_cell.set_visited()
+                            cell_stack_row.append(initial_cell.row)
+                            cell_stack_col.append(initial_cell.col)
+                            while len(cell_stack_row) > 0:
+                                current_cell_row = cell_stack_row.pop()
+                                current_cell_col = cell_stack_col.pop()
+                                rnd_cell = self.get_random_neighbour(self.cells[current_cell_row][current_cell_col])
+                                if rnd_cell is not None:
+                                    # Push current cell to Stack
+                                    cell_stack_row.append(current_cell_row)
+                                    cell_stack_col.append(current_cell_col)
+                                    # Get current from grid
+                                    current_cell = self.cells[current_cell_row][current_cell_col]
 
-            # Maze Generation has finished, create origin (blue) destination (Green)
-            if not self.players_drawn:
-                self.hero = self.get_random_cell()
-                draw_square(pygame, self.screen, self.hero, BLUE, self.player_size, self.cell_size)
-                for i in range(NUM_PLAYERS):
-                    player = self.get_random_cell()
-                    self.players.append(player)
-                    draw_square(pygame, self.screen, player, random.choice([RED, PINK]), self.player_size,
-                                self.cell_size)
-                update_display(pygame, fpsClock, FPS)
-                self.players_drawn = True
-                self.start_maze_solver = True
-                self.set_cells_not_visited()
+                                    # Remove walls between current cell and rnd_cell
+                                    remove_walls(current_cell, rnd_cell, current_cell_row, current_cell_col)
 
-            # We start BFS once the MAZE has been constructed by DFS
-            if self.start_maze_solver:
-                self.execute_solver(is_bfs, path_shape)
+                                    # Mark rnd cell as visited
+                                    current_cell.set_visited()
+
+                                    # Push rnd cell to the stacks
+                                    rnd_cell.set_visited()
+                                    cell_stack_row.append(rnd_cell.row)
+                                    cell_stack_col.append(rnd_cell.col)
+
+                                    # repaint lines with black line
+                                    self.draw_walls(current_cell.walls, BLACK)
+                                    self.draw_walls(rnd_cell.walls, BLACK)
+                                    update_display(pygame, fpsClock, FPS)
+
+                            self.start_maze_solver = True
+                            self.set_cells_not_visited()
+
+                            # We start BFS once the MAZE has been constructed by DFS
+                            if self.start_maze_solver:
+                                self.execute_solver(is_bfs, path_shape)
 
     def explore_neighbours(self, row, col):
         """
@@ -229,19 +244,20 @@ class Maze:
     def draw_route(self, color, path_type):
         for cells_rows in self.cells:
             for cell in cells_rows:
-                if cell != self.hero and cell != self.players[0]:
+                if cell != self.players[0] and cell != self.players[1]:
                     draw_square(pygame, self.screen, cell, BLACK, self.player_size, self.cell_size)
 
-        final_route = self.paths[self.players[0].get_position()]
+        final_route = self.paths[self.players[1].get_position()]
         if path_type != Maze.LINED_PATH:
             for row, col in final_route:
                 c_cell = self.cells[row][col]
-                if c_cell != self.hero and c_cell != self.players[0]:
+                if c_cell != self.players[0] and c_cell != self.players[1]:
                     if path_type == Maze.DOTTED_PATH:
                         draw_circle(pygame, self.screen, c_cell, (self.cell_size - self.player_size) / 2, color)
                     elif path_type == Maze.RECTANGLE_PATH:
                         draw_square(pygame, self.screen, c_cell, color, self.player_size, self.cell_size)
-            update_display(pygame, fpsClock, FPS)
+                pygame.time.delay(120)
+                update_display(pygame, fpsClock, FPS)
         else:
             size_path = len(final_route)
             for i in range(size_path):
@@ -251,6 +267,8 @@ class Maze:
                     draw_line_between_cells(pygame, self.screen, self.cells[s_row][s_col], self.cells[e_row][e_col],
                                             GREEN_YELLOW)
                     update_display(pygame, fpsClock, FPS)
+                    pygame.time.delay(100)
+
 
     def draw_grid(self, color):
         for cell_row in self.cells:
@@ -306,11 +324,11 @@ class Maze:
         nodes_in_next_layer = 0
         reached_end = False
 
-        row_queue.append(self.hero.row)
-        col_queue.append(self.hero.col)
-        self.hero.set_visited()
-        initial_position = [self.hero.get_position()]
-        self.paths[(self.hero.get_position())] = initial_position
+        row_queue.append(self.players[0].row)
+        col_queue.append(self.players[0].col)
+        self.players[0].set_visited()
+        initial_position = [self.players[0].get_position()]
+        self.paths[(self.players[0].get_position())] = initial_position
         while len(row_queue) > 0:
             # deque is LIFO but using pop left we get queue behaviour FIFO
             if is_bfs:
@@ -321,8 +339,8 @@ class Maze:
                 col = col_queue.pop()
 
             current_cell: Cell = self.cells[row][col]
-            if current_cell == self.players[0]:
-                draw_square(pygame, self.screen, self.players[0], WHITE, self.player_size, self.cell_size)
+            if current_cell == self.players[1]:
+                draw_square(pygame, self.screen, self.players[1], WHITE, self.player_size, self.cell_size)
                 update_display(pygame, fpsClock, FPS)
                 reached_end = True
                 break
@@ -380,8 +398,8 @@ class Maze:
 if __name__ == "__main__":
     print(f'Welcome home Maze creator {time.time()}')
     margin = 20
-    m = Maze(1800, 1000, 250, margin, 1)
+    m = Maze(1800, 1000, 20, margin, 1)
     m.create_maze()
     print(
         f"(rows, cols) in the grid ({len(m.cells)}, {len(m.cells[0])}), total cells = {len(m.cells) * len(m.cells[0])}")
-    m.show_maze(Maze.DOTTED_PATH)
+    m.show_maze(Maze.LINED_PATH, False)

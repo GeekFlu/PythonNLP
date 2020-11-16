@@ -7,7 +7,7 @@ def print_maze_info(maze):
 
 if __name__ == '__main__':
     print('Maze Example')
-    m = Maze(1800, 1000, 88, 10, 1)
+    m = Maze(1800, 1000, 30, 10, 1)
     m.create_maze()
     print_maze_info(m)
     m.show_maze(Maze.DOTTED_PATH)
