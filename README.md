@@ -10,3 +10,5 @@ for language english library:
 # PyGame
 
 - sudo apt install python3-pygame
+
+

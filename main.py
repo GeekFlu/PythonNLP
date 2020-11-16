@@ -1,16 +1,19 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+from maze.MazeCreator import Maze
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+def print_maze_info(m):
+    print(f"(rows, cols) in the grid ({len(m.cells)}, {len(m.cells[0])}), total cells = {len(m.cells) * len(m.cells[0])}")
 
 
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
+    print('Maze Example')
+    m = Maze(1800, 1000, 88, 10, 1)
+    m.create_maze()
+    print_maze_info(m)
+    m.show_maze(Maze.DOTTED_PATH)
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    m1 = Maze(500, 500, 15)
+    m1.create_maze()
+    print_maze_info(m1)
+    is_bfs = False
+    m1.show_maze(Maze.LINED_PATH, is_bfs)

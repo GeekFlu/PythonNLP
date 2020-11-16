@@ -86,8 +86,8 @@ class Maze:
         # Tittle
         pygame.display.set_caption("Maze Creator")
 
-        # icon
-        pygame.display.set_icon(pygame.image.load(os.path.join('assets', 'maze3.png')))
+        # icon Need work to display
+        # pygame.display.set_icon(pygame.image.load(os.path.join('assets', 'maze3.png')))
 
         # Create the screen
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
