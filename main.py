@@ -1,8 +1,8 @@
 from maze.MazeCreator import Maze
 
 
-def print_maze_info(m):
-    print(f"(rows, cols) in the grid ({len(m.cells)}, {len(m.cells[0])}), total cells = {len(m.cells) * len(m.cells[0])}")
+def print_maze_info(maze):
+    print(f"(rows, cols) in the grid ({len(maze.cells)}, {len(maze.cells[0])}), total cells = {len(maze.cells) * len(maze.cells[0])}")
 
 
 if __name__ == '__main__':
