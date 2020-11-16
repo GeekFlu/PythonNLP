@@ -113,6 +113,10 @@ class Maze:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    pos_x, pos_y = event.pos
+                    clicked_cell = self.get_cell(pos_x, pos_y)
+                    print(clicked_cell)
 
             # Both stacks are in sync
             while len(cell_stack_row) > 0:
@@ -358,18 +362,26 @@ class Maze:
             self.draw_route(GREEN_YELLOW, path_shape)
             self.start_maze_solver = False
 
+    def get_cell(self, pos_x, pos_y):
+        delta_col = math.ceil((pos_x - self.margin) / self.cell_size) - 1  # zero based
+        delta_row = math.ceil((pos_y - self.margin) / self.cell_size) - 1  # zero based
+        last_cell = self.cells[-1][-1]
+        limit_x, limit_y = last_cell.walls[Line.SOUTH].end
+        if pos_x < limit_x and pos_y < limit_y:
+            cell = self.cells[delta_row][delta_col]
+            top_x, top_y = cell.walls[Line.NORTH].start
+            down_x, down_y = cell.walls[Line.SOUTH].end
+            if top_x < pos_x < down_x and top_y < pos_y < down_y:
+                return cell
+            else:
+                return None
+
 
 if __name__ == "__main__":
     print(f'Welcome home Maze creator {time.time()}')
     margin = 20
-    m = Maze(1800, 1000, 88, margin, 1)
+    m = Maze(1800, 1000, 250, margin, 1)
     m.create_maze()
     print(
         f"(rows, cols) in the grid ({len(m.cells)}, {len(m.cells[0])}), total cells = {len(m.cells) * len(m.cells[0])}")
     m.show_maze(Maze.DOTTED_PATH)
-
-    m1 = Maze(500, 500, 15)
-    m1.create_maze()
-    print(
-        f"(rows, cols) in the grid ({len(m.cells)}, {len(m.cells[0])}), total cells = {len(m.cells) * len(m.cells[0])}")
-    m1.show_maze(Maze.LINED_PATH, False)
