@@ -7,12 +7,12 @@ def print_maze_info(maze):
 
 if __name__ == '__main__':
     print('Maze Example')
-    m = Maze(1800, 1000, 30, 10, 1)
+    m = Maze(900, 900, 80, 10, 1)
     m.create_maze()
     print_maze_info(m)
     m.show_maze(Maze.DOTTED_PATH)
 
-    m1 = Maze(500, 500, 15)
+    m1 = Maze(700, 700, 15)
     m1.create_maze()
     print_maze_info(m1)
     is_bfs = False
