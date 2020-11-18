@@ -57,6 +57,7 @@ def draw_square(pygame, screen, cell: Cell, color, side, rectangle_size):
     delta = rectangle_size - side
     delta_x = delta / 2
     delta_y = delta / 2
+    print(f"delta_x = {delta_x}, delta_y={delta_y}")
     pygame.draw.rect(screen, color,
                      pygame.Rect(cell.walls[Line.NORTH].start[0] + delta_x, cell.walls[Line.NORTH].start[1] + delta_y,
                                  side, side))

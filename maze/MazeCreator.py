@@ -108,7 +108,7 @@ class Maze:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     pos_x, pos_y = event.pos
                     clicked_cell = self.get_cell(pos_x, pos_y)
-                    if counter % 2 == 0:
+                    if clicked_cell is not None and counter % 2 == 0:
                         # we create a hero pos 0
                         if self.players[0] is not None:
                             draw_square(pygame, self.screen, self.players[0], BLACK, self.player_size, self.cell_size)
@@ -116,11 +116,13 @@ class Maze:
                         self.players[0] = clicked_cell
                         draw_square(pygame, self.screen, clicked_cell, BLUE, self.player_size, self.cell_size)
                     else:
-                        if self.players[1] is not None:
-                            draw_square(pygame, self.screen, self.players[1], BLACK, self.player_size, self.cell_size)
-                        # we create the target
-                        self.players[1] = clicked_cell
-                        draw_square(pygame, self.screen, clicked_cell, random.choice([RED, PINK]), self.player_size,
+                        if clicked_cell is not None:
+                            if self.players[1] is not None:
+                                draw_square(pygame, self.screen, self.players[1], BLACK, self.player_size, self.cell_size)
+
+                            # we create the target
+                            self.players[1] = clicked_cell
+                            draw_square(pygame, self.screen, clicked_cell, random.choice([RED, PINK]), self.player_size,
                                     self.cell_size)
                     update_display(pygame, fpsClock, FPS)
                     print(clicked_cell)
