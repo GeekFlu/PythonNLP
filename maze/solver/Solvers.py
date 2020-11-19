@@ -8,13 +8,18 @@ November 6, 2020
 import random
 from collections import deque
 
-from maze.Shape import Cell
-from maze.utils import remove_walls, get_direction
+from maze.Shape import Cell, Color
+from maze.utils import remove_walls, get_direction, is_there_path, draw_square, update_display
 
 
 class MazeSolverInterface:
 
-    def solve(self, players: []) -> dict:
+    def __init__(self, the_grid):
+        self.cells = the_grid
+        self.R = len(self.cells)
+        self.C = len(self.cells[0])
+
+    def solve(self, pygame, screen, delay, fps_clock, fps, players: [], player_size, cell_size) -> dict:
         """
         Will implement BFS or DFS to solve the maze
         :return:
@@ -24,10 +29,37 @@ class MazeSolverInterface:
     def generate_maze(self, hero: Cell):
         pass
 
+    def explore_neighbours(self, row, col):
+        """
+        We explore the neighbours from a cell
+        :param row: row
+        :param col: col
+        :return: Neighbours
+        """
+        # BFS https://youtu.be/09_LlHjoEiY?t=3239
+        neighbours = []
+        for i in range(4):
+            rr, cc = get_direction(row, col, i)
+
+            # we skip bounds
+            if rr < 0 or cc < 0:
+                continue
+            if rr >= self.R or cc >= self.C:
+                continue
+
+            if self.cells[rr][cc].is_visited:
+                continue
+
+            # we have to determine if there is a pathway between current cell and next cell we use relative position
+            if is_there_path(self.cells[row][col], self.cells[rr][cc]):
+                neighbours.append(self.cells[rr][cc])
+
+        return neighbours
+
 
 class BFSSolver(MazeSolverInterface):
 
-    def solve(self, players: []) -> dict:
+    def solve(self, pygame, screen, delay, fps_clock, fps, players: [], player_size, cell_size) -> dict:
         row_queue = deque()
         col_queue = deque()
 
@@ -49,8 +81,6 @@ class BFSSolver(MazeSolverInterface):
 
             current_cell: Cell = self.cells[row][col]
             if current_cell == self.players[1]:
-                draw_square(pygame, self.screen, self.players[1], WHITE, self.player_size, self.cell_size)
-                update_display(pygame, fpsClock, FPS)
                 reached_end = True
                 break
 
@@ -86,10 +116,7 @@ class BFSSolver(MazeSolverInterface):
         if reached_end:
             print(f"We found it move count = {move_count}")
             # lets paint the final route
-            self.draw_route(GREEN_YELLOW, path_shape)
-            self.start_maze_solver = False
-            self.solving = False
-            self.set_cells_not_visited()
+            return
 
     def generate_maze(self, hero: Cell):
         pass
@@ -98,11 +125,9 @@ class BFSSolver(MazeSolverInterface):
 class DFSSolver(MazeSolverInterface):
 
     def __init__(self, the_grid):
-        self.cells = the_grid
-        self.R = len(self.cells)
-        self.C = len(self.cells[0])
+        super(DFSSolver, self).__init__(the_grid)
 
-    def solve(self, players: []) -> dict:
+    def solve(self, pygame, screen, delay, fps_clock, fps, players: [], player_size, cell_size) -> dict:
         paths = dict()
         row_queue = deque()
         col_queue = deque()
@@ -125,8 +150,6 @@ class DFSSolver(MazeSolverInterface):
 
             current_cell: Cell = self.cells[row][col]
             if current_cell == players[1]:
-                draw_square(pygame, self.screen, players[1], WHITE, self.player_size, self.cell_size)
-                update_display(pygame, fpsClock, FPS)
                 reached_end = True
                 break
 
@@ -138,9 +161,9 @@ class DFSSolver(MazeSolverInterface):
                 cell_n.set_visited()
                 nodes_in_next_layer += 1
                 # we mark the paths
-                draw_square(pygame, self.screen, cell_n, GREEN_YELLOW, self.player_size, self.cell_size)
-                pygame.time.delay(self.delay)
-                update_display(pygame, fpsClock, FPS)
+                draw_square(pygame, screen, cell_n,  Color.GREEN_YELLOW, player_size, cell_size)
+                pygame.time.delay(delay)
+                update_display(pygame, fps_clock, fps)
                 nodes_left_in_layer -= 1
                 if nodes_left_in_layer == 0:
                     nodes_left_in_layer = nodes_in_next_layer
@@ -161,11 +184,8 @@ class DFSSolver(MazeSolverInterface):
 
         if reached_end:
             print(f"We found it move count = {move_count}")
-            # lets paint the final route
-            self.draw_route(GREEN_YELLOW, path_shape)
-            self.start_maze_solver = False
-            self.solving = False
-            self.set_cells_not_visited()
+
+        return paths
 
     def generate_maze(self, hero: Cell):
         # stack to start DFS

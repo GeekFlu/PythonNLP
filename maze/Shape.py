@@ -7,6 +7,22 @@ Noviembre 6, 2020
 """
 
 
+class Color:
+    NUM_PLAYERS = 1
+    RED = (255, 0, 0)
+    GREEN = (0, 255, 0)
+    BLUE = (0, 0, 255)
+    DARK_BLUE = (0, 0, 128)
+    WHITE = (255, 255, 255)
+    BLACK = (0, 0, 0)
+    PINK = (255, 200, 200)
+    NOOB = (255, 0, 0)
+    LEMON_CHIFFON = (255, 250, 205)
+    YELLOW = (255, 255, 0)
+    GREEN_YELLOW = (173, 255, 47)
+    ORANGE_BROWN = (102, 47, 0)
+
+
 class Line:
     WEST = 'west'
     EAST = 'east'

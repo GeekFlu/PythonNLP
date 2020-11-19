@@ -7,7 +7,6 @@ November 6, 2020
 """
 from maze.Shape import Cell, Line
 
-
 def update_display(_pygame, _fps_clock, _fps):
     _pygame.display.update()
     _fps_clock.tick(_fps)
