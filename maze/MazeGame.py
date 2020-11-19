@@ -14,7 +14,8 @@ from collections import deque
 
 import pygame
 from maze.Shape import Line, Cell
-from maze.solver.Solvers import DFSSolver
+from maze.solver.BFS import BFSSolver
+from maze.solver.DFS import DFSSolver
 from maze.utils import draw_line, draw_square, remove_walls, get_direction, is_there_path, update_display, draw_circle, \
     draw_line_between_cells
 
@@ -55,7 +56,6 @@ class Maze:
         self.cell_size = cell_size
         self.player_size = math.ceil(cell_size * .60)
         self.margin = margin
-        self.lines = []
         self.cells = []
         self.R = 0
         self.C = 0
@@ -76,8 +76,6 @@ class Maze:
         self.running = True
 
     def show_maze(self, path_shape, is_bfs=True):
-        dfs = DFSSolver(self.cells)
-
         # Initialize Init
         pygame.init()
 
@@ -92,6 +90,9 @@ class Maze:
 
         # Drawing the grid
         self.draw_grid(ORANGE_BROWN)
+
+        dfs = DFSSolver(self.cells, pygame, self.screen, self.delay, fpsClock, FPS)
+        bfs = BFSSolver(self.cells, pygame, self.screen, self.delay, fpsClock, FPS)
 
         counter = 0
         while self.running:
@@ -157,8 +158,10 @@ class Maze:
 
                             # We start BFS once the MAZE has been constructed by DFS
                             if self.start_maze_solver:
-                                self.paths = dfs.solve(pygame, self.screen, self.delay, fpsClock, FPS, self.players,
-                                                       self.player_size, self.cell_size)
+                                if is_bfs:
+                                    self.paths = bfs.solve(self.players, self.player_size, self.cell_size)
+                                else:
+                                    self.paths = dfs.solve(self.players, self.player_size, self.cell_size)
                                 self.draw_route(GREEN_YELLOW, path_shape)
                                 self.start_maze_solver = False
                                 self.solving = False
@@ -265,7 +268,7 @@ class Maze:
 if __name__ == "__main__":
     print(f'Welcome home Maze creator {time.time()}')
     margin = 10
-    m = Maze(1500, 1000, 40, margin, 0)
+    m = Maze(1700, 1000, 70, margin, 0)
     m.create_maze()
     print(
         f"(rows, cols) in the grid ({len(m.cells)}, {len(m.cells[0])}), total cells = {len(m.cells) * len(m.cells[0])}")
