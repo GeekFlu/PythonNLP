@@ -14,6 +14,7 @@ from collections import deque
 
 import pygame
 from maze.Shape import Line, Cell
+from maze.solver.Solvers import DFSSolver
 from maze.utils import draw_line, draw_square, remove_walls, get_direction, is_there_path, update_display, draw_circle, \
     draw_line_between_cells
 
@@ -75,9 +76,7 @@ class Maze:
         self.running = True
 
     def show_maze(self, path_shape, is_bfs=True):
-        # stack to start DFS
-        cell_stack_row = deque()
-        cell_stack_col = deque()
+        dfs = DFSSolver(self.cells)
 
         # Initialize Init
         pygame.init()
@@ -90,15 +89,9 @@ class Maze:
 
         # Create the screen
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
-        self.screen.fill(BLACK)
 
         # Drawing the grid
         self.draw_grid(ORANGE_BROWN)
-        update_display(pygame, fpsClock, FPS)
-
-        # Setting max grid Dimension
-        self.R = len(self.cells)
-        self.C = len(self.cells[0])
 
         counter = 0
         while self.running:
@@ -118,12 +111,13 @@ class Maze:
                     else:
                         if clicked_cell is not None:
                             if self.players[1] is not None:
-                                draw_square(pygame, self.screen, self.players[1], BLACK, self.player_size, self.cell_size)
+                                draw_square(pygame, self.screen, self.players[1], BLACK, self.player_size,
+                                            self.cell_size)
 
                             # we create the target
                             self.players[1] = clicked_cell
                             draw_square(pygame, self.screen, clicked_cell, random.choice([RED, PINK]), self.player_size,
-                                    self.cell_size)
+                                        self.cell_size)
                     update_display(pygame, fpsClock, FPS)
                     print(clicked_cell)
                     counter += 1
@@ -136,43 +130,27 @@ class Maze:
                         print("Pressed up")
                     if event.key == pygame.K_DOWN:
                         print("Pressed down")
+
+                    # We repaint the grid
+                    if event.key == pygame.K_p:
+                        if not self.start_maze_solver:
+                            print("P-Pressed regenerate grid")
+                            self.draw_grid(ORANGE_BROWN)
+                            self.players[0] = None
+                            self.players[1] = None
+
                     if event.key == pygame.K_SPACE:
                         print("Space BAR pressed")
                         is_target_placed = self.players[1] is not None and type(self.players[1]) is Cell
                         is_hero_placed = self.players[0] is not None and type(self.players[0]) is Cell
                         if is_hero_placed and is_target_placed and not self.solving:
                             self.solving = True
-                            # Both stacks are in sync
-                            initial_cell = self.players[0]
-                            initial_cell.set_visited()
-                            cell_stack_row.append(initial_cell.row)
-                            cell_stack_col.append(initial_cell.col)
-                            while len(cell_stack_row) > 0:
-                                current_cell_row = cell_stack_row.pop()
-                                current_cell_col = cell_stack_col.pop()
-                                rnd_cell = self.get_random_neighbour(self.cells[current_cell_row][current_cell_col])
-                                if rnd_cell is not None:
-                                    # Push current cell to Stack
-                                    cell_stack_row.append(current_cell_row)
-                                    cell_stack_col.append(current_cell_col)
-                                    # Get current from grid
-                                    current_cell = self.cells[current_cell_row][current_cell_col]
-
-                                    # Remove walls between current cell and rnd_cell
-                                    remove_walls(current_cell, rnd_cell, current_cell_row, current_cell_col)
-
-                                    # Mark rnd cell as visited
-                                    current_cell.set_visited()
-
-                                    # Push rnd cell to the stacks
-                                    rnd_cell.set_visited()
-                                    cell_stack_row.append(rnd_cell.row)
-                                    cell_stack_col.append(rnd_cell.col)
-
-                                    # repaint lines with black line
-                                    self.draw_walls(current_cell.walls, BLACK)
-                                    self.draw_walls(rnd_cell.walls, BLACK)
-                                    update_display(pygame, fpsClock, FPS)
+                            self.cells = dfs.generate_maze(self.players[0])
+                            # repaint grid
+                            for cell_rows in self.cells:
+                                for cell in cell_rows:
+                                    self.draw_walls(cell.walls, BLACK)
+                                update_display(pygame, fpsClock, FPS)
 
                             self.start_maze_solver = True
                             self.set_cells_not_visited()
@@ -208,36 +186,6 @@ class Maze:
 
         return neighbours
 
-    def get_random_neighbour(self, current_cell):
-        neighbours = self.get_neighbours(current_cell.row, current_cell.col)
-        if len(neighbours) > 0:
-            return random.choice(neighbours)
-        else:
-            return None
-
-    def get_neighbours(self, row, col):
-        neighbours = []
-        for i in range(4):
-            rr, cc = get_direction(row, col, i)
-            # we skip bounds
-            if rr < 0 or cc < 0:
-                continue
-            if rr >= self.R or cc >= self.C:
-                continue
-
-            # we skip visited cells
-            if self.cells[rr][cc].is_visited:
-                continue
-
-            neighbours.append(self.cells[rr][cc])
-
-        return neighbours
-
-    def get_random_cell(self):
-        rnd_row = random.randint(0, len(self.cells) - 1)
-        rnd_col = random.randint(0, len(self.cells[0]) - 1)
-        return self.cells[rnd_row][rnd_col]
-
     def set_cells_not_visited(self):
         for cell_row in self.cells:
             for cell in cell_row:
@@ -258,7 +206,7 @@ class Maze:
                         draw_circle(pygame, self.screen, c_cell, (self.cell_size - self.player_size) / 2, color)
                     elif path_type == Maze.RECTANGLE_PATH:
                         draw_square(pygame, self.screen, c_cell, color, self.player_size, self.cell_size)
-                pygame.time.delay(120)
+                pygame.time.delay(50)
                 update_display(pygame, fpsClock, FPS)
         else:
             size_path = len(final_route)
@@ -269,14 +217,19 @@ class Maze:
                     draw_line_between_cells(pygame, self.screen, self.cells[s_row][s_col], self.cells[e_row][e_col],
                                             GREEN_YELLOW)
                     update_display(pygame, fpsClock, FPS)
-                    pygame.time.delay(100)
-
+                    pygame.time.delay(50)
 
     def draw_grid(self, color):
+        self.screen.fill(BLACK)
         for cell_row in self.cells:
             for cell in cell_row:
                 for wall in cell.walls.values():
+                    wall.set_blocking_wall()
                     draw_line(pygame, self.screen, wall, color)
+        update_display(pygame, fpsClock, FPS)
+        # Setting max grid Dimension
+        self.R = len(self.cells)
+        self.C = len(self.cells[0])
 
     def create_walls(self):
         num_horizontal_cells = int((self.screen_width - 2 * self.margin) / self.cell_size)
@@ -381,6 +334,8 @@ class Maze:
             # lets paint the final route
             self.draw_route(GREEN_YELLOW, path_shape)
             self.start_maze_solver = False
+            self.solving = False
+            self.set_cells_not_visited()
 
     def get_cell(self, pos_x, pos_y):
         delta_col = math.ceil((pos_x - self.margin) / self.cell_size) - 1  # zero based
@@ -400,7 +355,7 @@ class Maze:
 if __name__ == "__main__":
     print(f'Welcome home Maze creator {time.time()}')
     margin = 20
-    m = Maze(1800, 1000, 20, margin, 1)
+    m = Maze(900, 800, 20, margin, 0)
     m.create_maze()
     print(
         f"(rows, cols) in the grid ({len(m.cells)}, {len(m.cells[0])}), total cells = {len(m.cells) * len(m.cells[0])}")

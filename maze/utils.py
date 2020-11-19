@@ -3,7 +3,7 @@ Maze Generator DFS
 Maze Solver BFS
 Luis Enrique Gonzalez
 Sunnyvale CA
-Noviembre 6, 2020
+November 6, 2020
 """
 from maze.Shape import Cell, Line
 
@@ -105,19 +105,19 @@ def is_there_path(current_cell, next_cell):
         relative_col_pos = current_cell.col - next_cell.col
         if relative_col_pos == 1:
             # we remove current cell west wall and rnd east wall
-            if not current_cell.walls[Line.WEST].is_blocking_wall and not next_cell.walls[Line.EAST].set_not_blocking_wall():
+            if not current_cell.walls[Line.WEST].is_blocking_wall and not next_cell.walls[Line.EAST].is_blocking_wall:
                 is_path = True
         elif relative_col_pos == -1:
             # we remove current cell's east wall and rnd cell's west wall
-            if not current_cell.walls[Line.EAST].is_blocking_wall and not next_cell.walls[Line.WEST].set_not_blocking_wall():
+            if not current_cell.walls[Line.EAST].is_blocking_wall and not next_cell.walls[Line.WEST].is_blocking_wall:
                 is_path = True
     elif current_cell.col == next_cell.col:
         relative_row_pos = current_cell.row - next_cell.row
         if relative_row_pos == 1:
             # Remove current's North and Rnd's South
-            if not current_cell.walls[Line.NORTH].is_blocking_wall and not next_cell.walls[Line.SOUTH].set_not_blocking_wall():
+            if not current_cell.walls[Line.NORTH].is_blocking_wall and not next_cell.walls[Line.SOUTH].is_blocking_wall:
                 is_path = True
         elif relative_row_pos == -1:
-            if not current_cell.walls[Line.SOUTH].is_blocking_wall and not next_cell.walls[Line.NORTH].set_not_blocking_wall():
+            if not current_cell.walls[Line.SOUTH].is_blocking_wall and not next_cell.walls[Line.NORTH].is_blocking_wall:
                 is_path = True
     return is_path

@@ -5,6 +5,8 @@ Luis Enrique Gonzalez
 Sunnyvale CA
 Noviembre 6, 2020
 """
+
+
 class Line:
     WEST = 'west'
     EAST = 'east'
@@ -33,6 +35,9 @@ class Line:
 
     def set_not_blocking_wall(self):
         self.is_blocking_wall = False
+
+    def set_blocking_wall(self):
+        self.is_blocking_wall = True
 
     def mid_point(self):
         m_x = (self.start[0] + self.end[0]) / 2
