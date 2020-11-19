@@ -1,4 +1,4 @@
-from maze.MazeCreator import Maze
+from maze.MazeGame import Maze
 
 
 def print_maze_info(maze):
