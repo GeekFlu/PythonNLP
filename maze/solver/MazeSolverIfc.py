@@ -60,3 +60,28 @@ class MazeSolverInterface:
                 neighbours.append(self.cells[rr][cc])
 
         return neighbours
+
+    def get_neighbours(self, row, col):
+        neighbours = []
+        for i in range(4):
+            rr, cc = get_direction(row, col, i)
+            # we skip bounds
+            if rr < 0 or cc < 0:
+                continue
+            if rr >= self.R or cc >= self.C:
+                continue
+
+            # we skip visited cells
+            if self.cells[rr][cc].is_visited:
+                continue
+
+            neighbours.append(self.cells[rr][cc])
+
+        return neighbours
+
+    def get_random_neighbour(self, current_cell):
+        neighbours = self.get_neighbours(current_cell.row, current_cell.col)
+        if len(neighbours) > 0:
+            return random.choice(neighbours)
+        else:
+            return None
