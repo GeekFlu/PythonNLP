@@ -174,7 +174,6 @@ class Maze:
                             self.draw_route(GREEN_YELLOW, path_shape)
                             self.start_maze_solver = False
                             self.solving = False
-                            is_algo_set = None
                             self.set_cells_not_visited()
 
     def check_players_position(self):
