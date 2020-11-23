@@ -7,8 +7,8 @@ from maze.utils import remove_walls, get_direction, is_there_path, draw_square, 
 
 class BFSSolver(MazeSolverInterface):
 
-    def __init__(self, the_grid, pygame, screen, delay, fps_clock, fps):
-        super(BFSSolver, self).__init__(the_grid, pygame, screen, delay, fps_clock, fps)
+    def __init__(self, the_grid, pygame, screen, delay, fps_clock, fps, enable_visual_solve):
+        super(BFSSolver, self).__init__(the_grid, pygame, screen, delay, fps_clock, fps, enable_visual_solve)
 
     def solve(self, players: [], player_size, cell_size) -> dict:
         paths = dict()
@@ -43,10 +43,13 @@ class BFSSolver(MazeSolverInterface):
                 col_queue.append(cell_n.col)
                 cell_n.set_visited()
                 nodes_in_next_layer += 1
+
                 # we mark the paths
-                draw_square(self.pygame, self.screen, cell_n, Color.GREEN_YELLOW, player_size, cell_size)
-                self.pygame.time.delay(self.delay)
-                update_display(self.pygame, self.fps_clock, self.fps)
+                if self.enable_visual_solve:
+                    draw_square(self.pygame, self.screen, cell_n, Color.GREEN_YELLOW, player_size, cell_size)
+                    self.pygame.time.delay(self.delay)
+                    update_display(self.pygame, self.fps_clock, self.fps)
+
                 nodes_left_in_layer -= 1
                 if nodes_left_in_layer == 0:
                     nodes_left_in_layer = nodes_in_next_layer
