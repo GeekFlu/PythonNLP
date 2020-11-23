@@ -7,9 +7,14 @@ November 6, 2020
 """
 from maze.Shape import Cell, Line
 
+
 def update_display(_pygame, _fps_clock, _fps):
     _pygame.display.update()
     _fps_clock.tick(_fps)
+
+
+def get_line(cell, line_direction):
+    return cell.walls[line_direction]
 
 
 def draw_line(pygame, screen, line: Line, color):
@@ -42,7 +47,7 @@ def draw_rectangle(pygame, screen, cell: Cell, color, width, height):
                      pygame.Rect(cell.walls[Line.NORTH].start[0], cell.walls[Line.NORTH].start[1], width, height))
 
 
-def draw_square(pygame, screen, cell: Cell, color, side, rectangle_size):
+def draw_centered_square(pygame, screen, cell: Cell, color, side, rectangle_size):
     """
     Drawing the player centered
     :param pygame:

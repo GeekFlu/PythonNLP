@@ -2,7 +2,7 @@ import random
 from collections import deque
 from maze.Shape import Cell, Color
 from maze.solver.MazeSolverIfc import MazeSolverInterface
-from maze.utils import remove_walls, get_direction, is_there_path, draw_square, update_display
+from maze.utils import remove_walls, get_direction, is_there_path, draw_centered_square, update_display
 
 
 class BFSSolver(MazeSolverInterface):
@@ -46,7 +46,7 @@ class BFSSolver(MazeSolverInterface):
 
                 # we mark the paths
                 if self.enable_visual_solve:
-                    draw_square(self.pygame, self.screen, cell_n, Color.GREEN_YELLOW, player_size, cell_size)
+                    draw_centered_square(self.pygame, self.screen, cell_n, Color.GREEN_YELLOW, player_size, cell_size)
                     self.pygame.time.delay(self.delay)
                     update_display(self.pygame, self.fps_clock, self.fps)
 

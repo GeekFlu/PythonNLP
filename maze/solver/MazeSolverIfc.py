@@ -9,7 +9,7 @@ import random
 from collections import deque
 
 from maze.Shape import Cell, Color
-from maze.utils import remove_walls, get_direction, is_there_path, draw_square, update_display
+from maze.utils import remove_walls, get_direction, is_there_path, draw_centered_square, update_display
 
 
 class MazeSolverInterface:
