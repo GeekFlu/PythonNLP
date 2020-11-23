@@ -14,7 +14,7 @@ from maze.utils import remove_walls, get_direction, is_there_path, draw_square, 
 
 class MazeSolverInterface:
 
-    def __init__(self, the_grid, pygame, screen, delay, fps_clock, fps):
+    def __init__(self, the_grid, pygame, screen, delay, fps_clock, fps, enable_visual_solve):
         self.cells = the_grid
         self.R = len(self.cells)
         self.C = len(self.cells[0])
@@ -23,6 +23,7 @@ class MazeSolverInterface:
         self.delay = delay
         self.fps_clock = fps_clock
         self.fps = fps
+        self.enable_visual_solve = enable_visual_solve
 
     def solve(self, players: [], player_size, cell_size) -> dict:
         """

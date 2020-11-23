@@ -75,7 +75,7 @@ class Maze:
         # Call show maze
         self.running = True
 
-    def show_maze(self, path_shape):
+    def show_maze(self, path_shape, enable_find_route=False):
         # Initialize Init
         pygame.init()
 
@@ -91,8 +91,8 @@ class Maze:
         # Drawing the grid
         self.draw_grid(ORANGE_BROWN)
 
-        dfs = DFSSolver(self.cells, pygame, self.screen, self.delay, fpsClock, FPS)
-        bfs = BFSSolver(self.cells, pygame, self.screen, self.delay, fpsClock, FPS)
+        dfs = DFSSolver(self.cells, pygame, self.screen, self.delay, fpsClock, FPS, enable_find_route)
+        bfs = BFSSolver(self.cells, pygame, self.screen, self.delay, fpsClock, FPS, enable_find_route)
 
         counter = 0
         is_algo_set = None
@@ -174,7 +174,6 @@ class Maze:
                             self.draw_route(GREEN_YELLOW, path_shape)
                             self.start_maze_solver = False
                             self.solving = False
-                            is_algo_set = None
                             self.set_cells_not_visited()
 
     def check_players_position(self):
@@ -202,7 +201,7 @@ class Maze:
                         draw_circle(pygame, self.screen, c_cell, (self.cell_size - self.player_size) / 2, color)
                     elif path_type == Maze.RECTANGLE_PATH:
                         draw_square(pygame, self.screen, c_cell, color, self.player_size, self.cell_size)
-                pygame.time.delay(50)
+                pygame.time.delay(self.delay)
                 update_display(pygame, fpsClock, FPS)
         else:
             size_path = len(final_route)
@@ -213,7 +212,7 @@ class Maze:
                     draw_line_between_cells(pygame, self.screen, self.cells[s_row][s_col], self.cells[e_row][e_col],
                                             GREEN_YELLOW)
                     update_display(pygame, fpsClock, FPS)
-                    pygame.time.delay(50)
+                    pygame.time.delay(self.delay)
 
     def draw_grid(self, color):
         self.screen.fill(BLACK)
@@ -283,8 +282,8 @@ class Maze:
 if __name__ == "__main__":
     print(f'Welcome home Maze creator {time.time()}')
     margin = 10
-    m = Maze(1700, 1000, 30, margin, 0)
+    m = Maze(1700, 1000, 18, margin, 5)
     m.create_maze()
     print(
         f"(rows, cols) in the grid ({len(m.cells)}, {len(m.cells[0])}), total cells = {len(m.cells) * len(m.cells[0])}")
-    m.show_maze(Maze.LINED_PATH)
+    m.show_maze(Maze.LINED_PATH, True)
