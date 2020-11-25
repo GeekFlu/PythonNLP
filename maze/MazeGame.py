@@ -1,4 +1,5 @@
 """
+Ver 2
 Maze Generator DFS
 Maze Solver BFS
 Luis Enrique Gonzalez
